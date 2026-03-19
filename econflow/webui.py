@@ -268,12 +268,14 @@ def _project_metrics(project_dir: Path) -> dict[str, int | str]:
 
 
 def _load_project_cards(project_dir: Path, active_roles: list[str]) -> dict[str, list[dict[str, Any]]]:
-    grouped: dict[str, list[dict[str, Any]]] = {"phd": [], "ma": []}
+    grouped: dict[str, list[dict[str, Any]]] = {"phd": [], "ma": [], "econ-os": []}
     for role_id, spec in load_role_specs(project_dir.parent.parent).items():
         deliverable_path = project_dir / spec.deliverable
         deliverable_text = _read_text(deliverable_path)
         latest_run = _latest_run_for_role(project_dir, role_id)
         metadata = _latest_run_metadata(latest_run)
+        if spec.layer not in grouped:
+            grouped[spec.layer] = []
         grouped[spec.layer].append(
             {
                 "role_id": role_id,
