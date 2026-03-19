@@ -42,6 +42,14 @@ projects/*/runs/
 .webui-secrets.json
 *.log
 
+# Generated test/runtime artifacts
+projects/test-*/
+agents/_custom_roles.json
+agents/*/card.md
+agents/*/profile.json
+shared-notes/process_templates.json
+shared-notes/process_state.json
+
 # Sensitive files
 .env
 .env.local
