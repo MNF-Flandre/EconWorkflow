@@ -430,6 +430,15 @@ legend {
 
 .process-ribbon {
   margin-top: 18px;
+  align-items: center;
+}
+
+.process-ribbon .ribbon-item:not(:last-child)::after {
+  content: "→";
+  margin-left: 14px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 400;
 }
 
 .ribbon-item,
@@ -1804,5 +1813,51 @@ dd {
   button,
   .button-link {
     width: 100%;
+  }
+
+  .agent-links button,
+  .agent-links .button-link,
+  .confirm-dialog-actions button,
+  .confirm-dialog-actions .button-link,
+  .process-carousel-actions button,
+  .panel-head button,
+  .panel-head .button-link {
+    width: auto;
+  }
+}
+
+/* ── Econ-OS phase-grouped agent layout ─────────────────── */
+
+.econ-os-phases {
+  display: grid;
+  gap: 32px;
+  margin-top: 4px;
+}
+
+.econ-os-phase-group {
+  display: grid;
+  gap: 14px;
+}
+
+.econ-os-phase-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.econ-os-phase-header strong {
+  font-size: 0.92rem;
+  font-weight: 660;
+  color: var(--ink-soft);
+}
+
+.econ-os-agent-pair {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--card-gap);
+}
+
+@media (max-width: 920px) {
+  .econ-os-agent-pair {
+    grid-template-columns: 1fr;
   }
 }

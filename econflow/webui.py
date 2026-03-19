@@ -1071,12 +1071,23 @@ def create_app(root: Path | None = None) -> Flask:
         except FileNotFoundError:
             abort(404)
         state = _load_ui_state(project_dir)
+        grouped_cards = _load_project_cards(project_dir, state["active_roles"])
+        econ_os_agents = grouped_cards.get("econ-os", [])
+        econ_os_phases = [
+            {
+                "label": RESEARCH_STAGES[i]["label"],
+                "cards": econ_os_agents[i * 2 : (i + 1) * 2],
+            }
+            for i in range(min(5, len(RESEARCH_STAGES)))
+            if econ_os_agents[i * 2 : (i + 1) * 2]
+        ]
         return render_template(
             "project.html",
             slug=slug,
             title=_project_title(project_dir),
             brief_text=_read_text(project_dir / "brief.md"),
-            grouped_cards=_load_project_cards(project_dir, state["active_roles"]),
+            grouped_cards=grouped_cards,
+            econ_os_phases=econ_os_phases,
             tickets=_load_tickets(project_dir),
             runs=_load_runs(project_dir),
             state=state,

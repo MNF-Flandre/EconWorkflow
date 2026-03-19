@@ -76,7 +76,7 @@
         <div>
           <p class="eyebrow">阶段与成员</p>
           <h2>更新当前阶段与参与成员</h2>
-          <p class="panel-copy">先确定项目所处阶段，再勾选这一轮参与的博士生和硕士生。</p>
+          <p class="panel-copy">先确定项目所处阶段，再勾选这一轮参与的研究团队成员。</p>
         </div>
       </div>
       <form method="post" action="{{ url_for('update_project_state', slug=slug) }}" class="stack-form">
@@ -206,7 +206,7 @@
           {% endif %}
 
           <details class="role-card-details process-assignment-details">
-            <summary>↓ 安排成员 ↓</summary>
+            <summary>安排成员</summary>
             <div class="role-card-body">
               <fieldset class="process-checkbox-grid">
                 <legend>负责成员</legend>
@@ -295,7 +295,7 @@
         <div>
           <p class="eyebrow">整轮推进</p>
           <h2>批量触发一组工作</h2>
-          <p class="panel-copy">如果你想直接发起整轮博士生评审或硕士生执行，可以在这里批量推进。</p>
+          <p class="panel-copy">按照当前流程选择一个推进预设，批量触发对应的一组研究角色。</p>
         </div>
       </div>
       <form method="post" action="{{ url_for('trigger_pipeline', slug=slug) }}" class="stack-form">
@@ -322,10 +322,86 @@
 </div>
 
 <div data-project-tab-panel="agents" hidden>
+  {% if econ_os_phases %}
   <section class="panel">
     <div class="panel-head">
       <div>
-        <p class="eyebrow">博士生评审层</p>
+        <p class="eyebrow">Econ-OS 研究团队</p>
+        <h2>执行者与审计员双重校验</h2>
+        <p class="panel-copy">每个阶段由一位执行者和一位独立审计员组成，确保研究规格不被后期篡改。</p>
+      </div>
+    </div>
+    <div class="econ-os-phases">
+      {% for phase in econ_os_phases %}
+      <div class="econ-os-phase-group">
+        <div class="econ-os-phase-header">
+          <span class="stage-index">{{ loop.index }}</span>
+          <strong>{{ phase.label }}</strong>
+        </div>
+        <div class="agent-grid econ-os-agent-pair">
+          {% for card in phase.cards %}
+          <article class="agent-card {% if not card.active %}agent-card-muted{% endif %}">
+            <div class="agent-card-head">
+              <h3 class="role-card-name">{{ card.name }}</h3>
+              <span class="agent-status {% if card.deliverable_ready %}agent-status-ready{% else %}agent-status-pending{% endif %}">
+                {% if card.deliverable_ready %}已有产出{% else %}等待推进{% endif %}
+              </span>
+            </div>
+            <p class="phd-summary">{{ card.excerpt or card.latest_task }}</p>
+            {% if card.sections %}
+            <div class="mini-meta">
+              {% for section in card.sections[:2] %}
+              <p><strong>{{ section.heading }}</strong> {{ section.body }}</p>
+              {% endfor %}
+            </div>
+            {% endif %}
+
+            <details class="role-card-details">
+              <summary>查看详情</summary>
+              <div class="role-card-body stack-form">
+                <div class="mini-meta">
+                  <p><strong>最近任务：</strong>{{ card.latest_task }}</p>
+                  {% if card.context_files %}
+                  <p><strong>参考材料：</strong>{{ card.context_files|join('、') }}</p>
+                  {% endif %}
+                </div>
+                <div class="agent-links">
+                  <a class="button-link button-link-secondary button-link-inline" href="{{ url_for('view_project_file', slug=slug, path=card.deliverable_path) }}">查看产出</a>
+                  {% if card.latest_prompt_path %}
+                  <a class="button-link button-link-secondary button-link-inline" href="{{ url_for('view_project_file', slug=slug, path=card.latest_prompt_path) }}">查看本轮说明</a>
+                  {% endif %}
+                  {% if card.latest_response_path %}
+                  <a class="button-link button-link-secondary button-link-inline" href="{{ url_for('view_project_file', slug=slug, path=card.latest_response_path) }}">查看结果</a>
+                  {% endif %}
+                </div>
+                <form method="post" action="{{ url_for('trigger_role', slug=slug) }}" class="stack-form compact-form">
+                  <input type="hidden" name="role_id" value="{{ card.role_id }}">
+                  <label>
+                    <span>补充要求</span>
+                    <textarea name="task" rows="3" placeholder="写给这位成员的补充要求。"></textarea>
+                  </label>
+                  <label class="inline-check">
+                    <input type="checkbox" name="execute">
+                    <span>直接完成这轮产出</span>
+                  </label>
+                  <button type="submit">单独推进这位成员</button>
+                </form>
+              </div>
+            </details>
+          </article>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  {% if grouped_cards.phd %}
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">评审层</p>
         <h2>先看判断，再看详情</h2>
         <p class="panel-copy">默认只展示核心结论与最近任务，详细内容放在展开区里。</p>
       </div>
@@ -349,7 +425,7 @@
         {% endif %}
 
         <details class="role-card-details">
-          <summary>↓ 查看详情 ↓</summary>
+          <summary>查看详情</summary>
           <div class="role-card-body stack-form">
             <div class="mini-meta">
               <p><strong>最近任务：</strong>{{ card.latest_task }}</p>
@@ -366,7 +442,6 @@
               <a class="button-link button-link-secondary button-link-inline" href="{{ url_for('view_project_file', slug=slug, path=card.latest_response_path) }}">查看产出</a>
               {% endif %}
             </div>
-
             <form method="post" action="{{ url_for('trigger_role', slug=slug) }}" class="stack-form compact-form">
               <input type="hidden" name="role_id" value="{{ card.role_id }}">
               <label>
@@ -385,13 +460,15 @@
       {% endfor %}
     </div>
   </section>
+  {% endif %}
 
+  {% if grouped_cards.ma %}
   <section class="panel">
     <div class="panel-head">
       <div>
-        <p class="eyebrow">硕士生执行层</p>
+        <p class="eyebrow">执行层</p>
         <h2>执行卡片</h2>
-        <p class="panel-copy">这里保留每位硕士生的执行概况和进入详情的入口。</p>
+        <p class="panel-copy">这里保留每位执行成员的概况和进入详情的入口。</p>
       </div>
     </div>
     <div class="agent-grid">
@@ -406,7 +483,7 @@
         <p class="phd-summary">{{ card.excerpt or card.latest_task }}</p>
 
         <details class="role-card-details">
-          <summary>↓ 查看详情 ↓</summary>
+          <summary>查看详情</summary>
           <div class="role-card-body stack-form">
             <div class="mini-meta">
               <p><strong>最近任务：</strong>{{ card.latest_task }}</p>
@@ -429,6 +506,15 @@
       {% endfor %}
     </div>
   </section>
+  {% endif %}
+
+  {% if not econ_os_phases and not grouped_cards.phd and not grouped_cards.ma %}
+  <section class="panel">
+    <div class="empty-state compact-empty">
+      <p class="muted">还没有配置研究团队。请到人员配置里添加成员。</p>
+    </div>
+  </section>
+  {% endif %}
 </div>
 
 <div data-project-tab-panel="records" hidden>
