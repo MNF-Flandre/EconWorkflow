@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "econ-research-workflow"
+version = "0.1.0"
+description = "A local, on-demand economics research workflow inspired by multi-agent collaboration."
+requires-python = ">=3.12"
+dependencies = ["Flask>=3.0"]
+
+[project.scripts]
+econflow = "econflow.cli:main"
+
+[tool.setuptools]
+packages = ["econflow"]
+
+[tool.setuptools.package-data]
+econflow = ["templates/*.html", "static/**/*"]

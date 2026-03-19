@@ -1,0 +1,503 @@
+{% extends "base.html" %}
+
+{% block title %}流程设置 | 研究实验室{% endblock %}
+
+{% block content %}
+<section class="hero compact-hero">
+  <div class="hero-main">
+    <p class="eyebrow">流程设置</p>
+    <h1>定义实验室的研究推进方式</h1>
+    <p class="hero-copy">先搭好一套适合你的工作流，再把它分配给具体项目。当前被设为默认的流程，会自动用于新建项目。</p>
+  </div>
+  <aside class="hero-side">
+    <div class="hero-card">
+      <p class="hero-label">当前流程</p>
+      <p class="hero-metric">{{ process_templates|length }}</p>
+      <p class="hero-submeta">系统预设和自建流程都会保留在这里。</p>
+    </div>
+  </aside>
+</section>
+
+<section class="panel" id="process-builder">
+  <div class="panel-head">
+    <div>
+      <p class="eyebrow">流程设置</p>
+      <h2>研究推进方式</h2>
+      <p class="panel-copy">左侧切换流程，右侧查看路径和搭建内容。设为当前后，新建项目会默认采用它。</p>
+    </div>
+    <span class="pill">{{ process_templates|length }} 套流程</span>
+  </div>
+
+  <div class="process-studio">
+    <aside class="panel settings-panel process-selector-panel">
+      <div class="panel-head process-selector-head">
+        <div>
+          <p class="eyebrow">工作流</p>
+          <h3>切换当前适用流程</h3>
+        </div>
+        {% if process_templates|length + 1 > 1 %}
+        <div class="process-carousel-actions">
+          <button type="button" class="button-link button-link-secondary button-link-inline process-carousel-button" id="process-prev">←</button>
+          <button type="button" class="button-link button-link-secondary button-link-inline process-carousel-button" id="process-next">→</button>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="process-carousel-window">
+        <div class="process-carousel-track" id="process-selector-track">
+          {% for process in process_templates %}
+          <article
+            class="process-choice-card {% if process.id == selected_process_id %}process-choice-card-active{% endif %}"
+            data-process-card
+            data-process-id="{{ process.id }}"
+          >
+            <div class="process-choice-top">
+              <span class="pill {% if process.is_builtin %}pill-ok{% endif %}">{% if process.is_builtin %}系统预设{% else %}自建流程{% endif %}</span>
+              {% if process.is_builtin %}
+              <button type="button" class="process-card-delete" data-process-default-delete>删除</button>
+              {% else %}
+              <button
+                type="button"
+                class="process-card-delete"
+                data-confirm-open
+                data-confirm-title="删除这套工作流？"
+                data-confirm-text="删除后，这套流程将不再出现在可选列表里。"
+                data-confirm-submit="delete-process-{{ process.id }}"
+                data-confirm-action-label="确认删除"
+              >
+                删除
+              </button>
+              <form id="delete-process-{{ process.id }}" method="post" action="{{ url_for('delete_process_template_from_ui', process_id=process.id) }}"></form>
+              {% endif %}
+            </div>
+
+            <div class="process-choice-body">
+              <h3>{{ process.name }}</h3>
+              {% if process.summary %}
+              <p>{{ process.summary }}</p>
+              {% endif %}
+            </div>
+
+            <div class="process-choice-foot">
+              <span class="pill">{{ process.step_count }} 步</span>
+              <form method="post" action="{{ url_for('set_current_process_from_ui') }}">
+                <input type="hidden" name="process_id" value="{{ process.id }}">
+                <button
+                  type="submit"
+                  class="button-link {% if process.id != selected_process_id %}button-link-secondary{% endif %} button-link-inline process-select-button"
+                >
+                  {% if process.id == selected_process_id %}已选中{% else %}设为当前{% endif %}
+                </button>
+              </form>
+            </div>
+          </article>
+          {% endfor %}
+
+          <article class="process-choice-card process-choice-create" data-process-card data-process-id="__create__">
+            <div class="process-choice-top">
+              <span class="pill">新建流程</span>
+            </div>
+            <div class="process-choice-body">
+              <h3>搭建新的工作流</h3>
+              <p>先补充环节，再把它们放进工作流里，按你的研究方式自由排布。</p>
+            </div>
+            <div class="process-choice-foot">
+              <span class="pill">自定义</span>
+              <button type="button" class="button-link button-link-secondary button-link-inline process-select-button" data-process-preview="__create__">开始搭建</button>
+            </div>
+          </article>
+        </div>
+      </div>
+    </aside>
+
+    <div class="process-workspace">
+      <article class="panel" id="stage-map">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">完整路径</p>
+            <h2>当前工作流的推进顺序</h2>
+            <p class="panel-copy">这里会随着左侧当前查看的流程自动切换，展示这套流程从开始到收束的完整安排。</p>
+          </div>
+        </div>
+        {% for process in process_templates %}
+        <div class="stage-map-switcher" data-stage-map-panel="{{ process.id }}" {% if process.id != selected_process_id %}hidden{% endif %}>
+          <div class="process-stage-header">
+            <div>
+              <h3>{{ process.name }}</h3>
+              {% if process.summary %}
+              <p class="muted">{{ process.summary }}</p>
+              {% endif %}
+            </div>
+            <span class="pill">{{ process.step_count }} 步</span>
+          </div>
+          <div class="stage-grid process-stage-grid">
+            {% for step in process.steps %}
+            <article class="stage-card process-stage-card">
+              <div class="stage-card-top">
+                <span class="stage-index">{{ loop.index }}</span>
+                <span class="pill">{{ process.name }}</span>
+              </div>
+              <h3>{{ step.label }}</h3>
+              {% if step.summary %}
+              <p class="muted">{{ step.summary }}</p>
+              {% endif %}
+            </article>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+
+        <div class="stage-map-switcher" data-stage-map-panel="__create__" hidden>
+          <div class="empty-state compact-empty">
+            <p class="muted">先搭建一套新的工作流，这里就会同步显示它的完整路径。</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel launch-panel process-builder-panel" data-process-panel="__create__" hidden>
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow">新建流程</p>
+            <h3>自由搭建流程</h3>
+            <p class="panel-copy">先补充备选环节，再拖进右侧的工作流区域，自由安排顺序。</p>
+          </div>
+        </div>
+
+        <form method="post" action="{{ url_for('save_process_template_from_ui') }}" class="stack-form" id="process-builder-form">
+          <label>
+            <span>流程名称</span>
+            <input type="text" name="name" id="process-name-input" placeholder="例如：基金微观数据快筛流程">
+          </label>
+          <label>
+            <span>流程简称（可选）</span>
+            <input type="text" name="process_id" placeholder="可留空，系统会自动生成">
+          </label>
+          <label>
+            <span>流程说明</span>
+            <textarea name="summary" rows="3" placeholder="选填，写一句这套流程适合用在什么场景。"></textarea>
+          </label>
+
+          <div class="process-builder-shell">
+            <section class="process-builder-card">
+              <div class="panel-head process-builder-head">
+                <div>
+                  <p class="eyebrow">新增环节</p>
+                  <h3>补充一个备选环节</h3>
+                </div>
+              </div>
+              <div class="stack-form">
+                <label>
+                  <span>环节名称</span>
+                  <input type="text" id="new-step-label" placeholder="例如：识别策略复核">
+                </label>
+                <label>
+                  <span>环节说明</span>
+                  <textarea id="new-step-summary" rows="3" placeholder="选填，写一句这个环节要完成什么。"></textarea>
+                </label>
+                <button type="button" class="button-link button-link-secondary" id="add-process-step">加入备选环节</button>
+              </div>
+            </section>
+
+            <div class="process-builder-grid">
+              <section class="process-builder-card">
+                <div class="panel-head process-builder-head">
+                  <div>
+                    <p class="eyebrow">备选环节</p>
+                    <h3>从这里挑选环节</h3>
+                  </div>
+                </div>
+                <div class="process-dropzone process-library-zone" id="process-step-library" aria-label="备选流程环节"></div>
+              </section>
+
+              <section class="process-builder-card process-workflow-card">
+                <div class="panel-head process-builder-head">
+                  <div>
+                    <p class="eyebrow">工作流</p>
+                    <h3>排布当前流程</h3>
+                  </div>
+                </div>
+                <div class="process-dropzone process-workflow-zone" id="process-workflow-zone" aria-label="当前流程工作区"></div>
+                <p class="process-workflow-hint" id="process-workflow-empty">把左侧环节拖到这里，组成一套完整流程。</p>
+              </section>
+            </div>
+          </div>
+
+          <input type="hidden" name="steps_json" id="process-steps-json">
+          <textarea name="steps" id="process-steps-text" hidden></textarea>
+
+          <button type="submit">保存这套流程</button>
+        </form>
+      </article>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block page_scripts %}
+<script id="process-step-library-data" type="application/json">{{ process_step_library|tojson }}</script>
+<script>
+  (() => {
+    const selectorTrack = document.getElementById("process-selector-track");
+    const selectorCards = Array.from(document.querySelectorAll("[data-process-card]"));
+    const processPanels = Array.from(document.querySelectorAll("[data-process-panel]"));
+    const stageMapPanels = Array.from(document.querySelectorAll("[data-stage-map-panel]"));
+    const prevButton = document.getElementById("process-prev");
+    const nextButton = document.getElementById("process-next");
+
+    const selectedProcessId = "{{ selected_process_id }}";
+    let carouselIndex = Math.max(0, selectorCards.findIndex((card) => card.dataset.processId === selectedProcessId));
+    let previewProcessId = selectorCards[carouselIndex]?.dataset.processId || selectedProcessId || "__create__";
+
+    function syncCarousel() {
+      if (!selectorTrack) {
+        return;
+      }
+      selectorTrack.style.transform = `translateX(-${carouselIndex * 100}%)`;
+      if (prevButton) {
+        prevButton.disabled = carouselIndex <= 0;
+      }
+      if (nextButton) {
+        nextButton.disabled = carouselIndex >= selectorCards.length - 1;
+      }
+    }
+
+    function previewProcess(processId) {
+      previewProcessId = processId;
+      processPanels.forEach((panel) => {
+        panel.hidden = panel.dataset.processPanel !== processId;
+      });
+      stageMapPanels.forEach((panel) => {
+        panel.hidden = panel.dataset.stageMapPanel !== processId;
+      });
+    }
+
+    if (selectorCards.length) {
+      selectorCards.forEach((card, index) => {
+        if (card.dataset.processId === "__create__") {
+          const createButton = card.querySelector("[data-process-preview]");
+          createButton?.addEventListener("click", () => {
+            carouselIndex = index;
+            syncCarousel();
+            previewProcess("__create__");
+          });
+        }
+      });
+
+      prevButton?.addEventListener("click", () => {
+        carouselIndex = Math.max(0, carouselIndex - 1);
+        syncCarousel();
+        previewProcess(selectorCards[carouselIndex]?.dataset.processId || selectedProcessId);
+      });
+
+      nextButton?.addEventListener("click", () => {
+        carouselIndex = Math.min(selectorCards.length - 1, carouselIndex + 1);
+        syncCarousel();
+        previewProcess(selectorCards[carouselIndex]?.dataset.processId || selectedProcessId);
+      });
+
+      document.querySelectorAll("[data-process-default-delete]").forEach((button) => {
+        button.addEventListener("click", () => {
+          window.showAppAlert("系统预设流程", "这套系统预设流程会一直保留。");
+        });
+      });
+
+      previewProcess(previewProcessId);
+      syncCarousel();
+    }
+
+    const form = document.getElementById("process-builder-form");
+    if (!form) {
+      return;
+    }
+
+    const libraryNode = document.getElementById("process-step-library");
+    const workflowNode = document.getElementById("process-workflow-zone");
+    const workflowEmptyNode = document.getElementById("process-workflow-empty");
+    const hiddenJson = document.getElementById("process-steps-json");
+    const hiddenText = document.getElementById("process-steps-text");
+    const addStepButton = document.getElementById("add-process-step");
+    const newStepLabel = document.getElementById("new-step-label");
+    const newStepSummary = document.getElementById("new-step-summary");
+    const processNameInput = document.getElementById("process-name-input");
+
+    const initialLibrary = JSON.parse(document.getElementById("process-step-library-data").textContent || "[]");
+    const state = {
+      librarySteps: initialLibrary.map((step, index) => ({
+        uid: `lib-${index}-${step.label}`,
+        label: step.label,
+        summary: step.summary || "",
+      })),
+      workflowSteps: [],
+      dragPayload: null,
+      dropIndex: null,
+    };
+
+    function updateHiddenSteps() {
+      hiddenJson.value = JSON.stringify(state.workflowSteps.map((step) => ({
+        label: step.label,
+        summary: step.summary || "",
+      })));
+      hiddenText.value = state.workflowSteps
+        .map((step) => step.summary ? `${step.label} | ${step.summary}` : step.label)
+        .join("\n");
+    }
+
+    function workflowDropIndex(clientY) {
+      const items = Array.from(workflowNode.querySelectorAll("[data-workflow-item]"));
+      for (let index = 0; index < items.length; index += 1) {
+        const rect = items[index].getBoundingClientRect();
+        if (clientY < rect.top + rect.height / 2) {
+          return index;
+        }
+      }
+      return items.length;
+    }
+
+    function createStepCard(step, options = {}) {
+      const node = document.createElement("article");
+      node.className = `process-step-token ${options.workflow ? "process-step-token-workflow" : "process-step-token-library"}`;
+      node.draggable = true;
+      node.dataset.uid = step.uid;
+      if (options.workflow) {
+        node.dataset.workflowItem = "true";
+      }
+
+      const handle = document.createElement("span");
+      handle.className = "process-step-handle";
+      handle.textContent = "⋮⋮";
+      handle.setAttribute("aria-hidden", "true");
+      node.appendChild(handle);
+
+      const body = document.createElement("div");
+      body.className = "process-step-token-body";
+      const title = document.createElement("strong");
+      title.textContent = step.label;
+      body.appendChild(title);
+      if (step.summary) {
+        const summary = document.createElement("p");
+        summary.textContent = step.summary;
+        body.appendChild(summary);
+      }
+      node.appendChild(body);
+
+      if (options.workflow) {
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.className = "process-step-remove";
+        removeButton.textContent = "×";
+        removeButton.title = "移出流程";
+        removeButton.setAttribute("aria-label", "移出流程");
+        removeButton.addEventListener("click", () => {
+          state.workflowSteps = state.workflowSteps.filter((item) => item.uid !== step.uid);
+          renderWorkflow();
+        });
+        node.appendChild(removeButton);
+      }
+
+      node.addEventListener("dragstart", () => {
+        state.dragPayload = {
+          source: options.workflow ? "workflow" : "library",
+          uid: step.uid,
+        };
+      });
+
+      node.addEventListener("dragend", () => {
+        state.dragPayload = null;
+        state.dropIndex = null;
+        renderWorkflow();
+      });
+
+      return node;
+    }
+
+    function renderLibrary() {
+      libraryNode.innerHTML = "";
+      state.librarySteps.forEach((step) => {
+        libraryNode.appendChild(createStepCard(step));
+      });
+    }
+
+    function renderWorkflow() {
+      workflowNode.innerHTML = "";
+      state.workflowSteps.forEach((step) => {
+        workflowNode.appendChild(createStepCard(step, { workflow: true }));
+      });
+      workflowEmptyNode.hidden = state.workflowSteps.length > 0;
+      workflowNode.classList.toggle("process-workflow-active", state.workflowSteps.length > 0);
+      updateHiddenSteps();
+    }
+
+    addStepButton.addEventListener("click", () => {
+      const label = newStepLabel.value.trim();
+      const summary = newStepSummary.value.trim();
+      if (!label) {
+        window.showAppAlert("请检查", "请先填写环节名称。");
+        newStepLabel.focus();
+        return;
+      }
+      state.librarySteps.unshift({
+        uid: `lib-custom-${Date.now()}`,
+        label,
+        summary,
+      });
+      newStepLabel.value = "";
+      newStepSummary.value = "";
+      renderLibrary();
+    });
+
+    workflowNode.addEventListener("dragover", (event) => {
+      event.preventDefault();
+      state.dropIndex = workflowDropIndex(event.clientY);
+      const items = Array.from(workflowNode.querySelectorAll("[data-workflow-item]"));
+      items.forEach((item) => item.classList.remove("process-step-insert-before"));
+      if (state.dropIndex !== null && items[state.dropIndex]) {
+        items[state.dropIndex].classList.add("process-step-insert-before");
+      }
+    });
+
+    workflowNode.addEventListener("drop", (event) => {
+      event.preventDefault();
+      if (!state.dragPayload) {
+        return;
+      }
+      const index = state.dropIndex === null ? state.workflowSteps.length : state.dropIndex;
+      if (state.dragPayload.source === "library") {
+        const original = state.librarySteps.find((step) => step.uid === state.dragPayload.uid);
+        if (original) {
+          state.workflowSteps.splice(index, 0, {
+            uid: `wf-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+            label: original.label,
+            summary: original.summary,
+          });
+        }
+      } else {
+        const currentIndex = state.workflowSteps.findIndex((step) => step.uid === state.dragPayload.uid);
+        if (currentIndex > -1) {
+          const [moved] = state.workflowSteps.splice(currentIndex, 1);
+          const targetIndex = currentIndex < index ? index - 1 : index;
+          state.workflowSteps.splice(targetIndex, 0, moved);
+        }
+      }
+      state.dropIndex = null;
+      renderWorkflow();
+    });
+
+    form.addEventListener("submit", (event) => {
+      const processName = processNameInput.value.trim();
+      if (!processName) {
+        event.preventDefault();
+        window.showAppAlert("请检查", "请先填写流程名称。");
+        processNameInput.focus();
+        return;
+      }
+      if (!state.workflowSteps.length) {
+        event.preventDefault();
+        window.showAppAlert("请检查", "请先添加至少一个流程步骤。");
+      }
+    });
+
+    renderLibrary();
+    renderWorkflow();
+  })();
+</script>
+{% endblock %}

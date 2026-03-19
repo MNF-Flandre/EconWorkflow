@@ -1,0 +1,44 @@
+# Econ-OS 2.0 Hypotheses Schema
+# Output of: Phase 1 (Discovery Phase) - Agent A synthesis
+# Produced by: B1 (Explorer) + B2 (Challenger) review
+
+research_question: string
+  # Core research question that motivated this study
+
+gap_identified: bool
+  # Whether a clear gap from prior literature has been identified
+
+h_candidates:
+  - hypothesis_id: "H1"
+    statement: string
+      # Exact hypothesis statement (form: "If X then Y because Z")
+    
+    theoretical_mechanism: string
+      # Economic/theoretical explanation
+    
+    empirical_prediction: string
+      # Specific empirical pattern expected to be observed
+    
+    supporting_evidence:
+      - author_year: string
+        finding: string
+        relevance: "direct" | "indirect" | "contradictory"
+    
+    competing_explanations:
+      - explanation: string
+        how_to_rule_out: string
+          # Test design element in Phase 2 to distinguish this from H1
+    
+    status: "active" | "rejected" | "deferred"
+    
+    rejection_note: string  # If status == rejected
+
+phase_1_completion_checklist:
+  - "Literature search completed"
+  - "Competing hypotheses identified"
+  - "No duplicate/published research found"
+  - "Mechanism is economically plausible"
+  - "All h_candidates are mutually testable"
+
+approved_by: string  # Agent A sign-off
+generated_at: ISO8601_timestamp

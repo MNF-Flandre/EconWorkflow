@@ -1,0 +1,585 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} | 研究实验室{% endblock %}
+
+{% block content %}
+<section class="hero">
+  <div class="hero-main">
+    <p class="eyebrow">项目研究</p>
+    <h1>{{ title }}</h1>
+    <p class="hero-copy">{{ brief_text | replace('# ', '') | replace('\n', ' ') | truncate(220, True, '…') }}</p>
+    <div class="hero-actions">
+      <a class="button-link button-link-secondary" href="{{ url_for('view_project_file', slug=slug, path='brief.md') }}">查看项目简介</a>
+      <button
+        type="button"
+        class="button-link button-link-danger"
+        data-confirm-open
+        data-confirm-title="删除这个项目？"
+        data-confirm-text="删除后，这个项目中的说明、任务和研究产出都会一起移除。"
+        data-confirm-submit="delete-project-{{ slug }}"
+        data-confirm-action-label="确认删除"
+      >
+        删除项目
+      </button>
+    </div>
+    <form id="delete-project-{{ slug }}" method="post" action="{{ url_for('delete_project_from_ui', slug=slug) }}"></form>
+  </div>
+
+  <aside class="hero-side">
+    <div class="hero-card">
+      <p class="hero-label">当前流程</p>
+      <p class="hero-metric hero-metric-small">{{ process_view.selected.name }}</p>
+      <p class="hero-submeta">
+        {% if process_view.current_step %}
+        当前推进到 {{ process_view.current_step.label }}。
+        {% else %}
+        当前流程还没有步骤。
+        {% endif %}
+      </p>
+    </div>
+    <div class="mini-note-card">
+      <p class="eyebrow">项目概况</p>
+      <dl class="metric-strip">
+        <div class="metric-tile">
+          <dt>参与成员</dt>
+          <dd>{{ state.active_roles|length }}</dd>
+        </div>
+        <div class="metric-tile">
+          <dt>研究产出</dt>
+          <dd>{{ metrics.outputs }}</dd>
+        </div>
+        <div class="metric-tile">
+          <dt>待办任务</dt>
+          <dd>{{ metrics.open_tickets }}</dd>
+        </div>
+        <div class="metric-tile">
+          <dt>推进记录</dt>
+          <dd>{{ metrics.runs }}</dd>
+        </div>
+      </dl>
+    </div>
+  </aside>
+</section>
+
+<section class="panel project-tab-shell">
+  <div class="project-tab-strip" data-project-tabs>
+    <button type="button" class="project-tab-button project-tab-button-active" data-project-tab-trigger="workflow">推进</button>
+    <button type="button" class="project-tab-button" data-project-tab-trigger="agents">成员表现</button>
+    <button type="button" class="project-tab-button" data-project-tab-trigger="records">记录与文件</button>
+  </div>
+</section>
+
+<div data-project-tab-panel="workflow">
+  <section class="grid two-up project-page-grid">
+    <article class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">阶段与成员</p>
+          <h2>更新当前阶段与参与成员</h2>
+          <p class="panel-copy">先确定项目所处阶段，再勾选这一轮参与的博士生和硕士生。</p>
+        </div>
+      </div>
+      <form method="post" action="{{ url_for('update_project_state', slug=slug) }}" class="stack-form">
+        <label>
+          <span>当前阶段</span>
+          <select name="stage">
+            {% for stage in research_stages %}
+            <option value="{{ stage.id }}" {% if state.stage == stage.id %}selected{% endif %}>{{ stage.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <fieldset>
+          <legend>本轮参与成员</legend>
+          <div class="checkbox-grid">
+            {% for role_id, spec in role_specs.items() %}
+            <label class="check-card">
+              <input type="checkbox" name="active_roles" value="{{ role_id }}" {% if role_id in state.active_roles %}checked{% endif %}>
+              <span>{{ spec.name }}</span>
+            </label>
+            {% endfor %}
+          </div>
+        </fieldset>
+
+        <button type="submit">保存阶段与成员</button>
+      </form>
+    </article>
+
+    <article class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">PI 决策</p>
+          <h2>记录这一轮判断</h2>
+          <p class="panel-copy">把继续推进、退回重做或暂停的判断留在项目页里，方便后续追踪。</p>
+        </div>
+      </div>
+
+      <form method="post" action="{{ url_for('add_pi_decision', slug=slug) }}" class="stack-form">
+        <label>
+          <span>决策</span>
+          <select name="decision">
+            {% for item in decision_options %}
+            <option value="{{ item }}">{{ item }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>补充说明</span>
+          <textarea name="note" rows="4" placeholder="写下这次判断的原因、风险点，或者下一步想让谁跟进。"></textarea>
+        </label>
+        <button type="submit">记录这次决策</button>
+      </form>
+
+      {% if state.pi_decisions %}
+      <div class="timeline">
+        {% for item in state.pi_decisions[:4] %}
+        <article class="timeline-item">
+          <div class="timeline-topline">
+            <strong>{{ item.decision }}</strong>
+            <span class="pill">{{ item.timestamp }}</span>
+          </div>
+          {% if item.note %}
+          <p>{{ item.note }}</p>
+          {% endif %}
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state compact-empty">
+        <p class="muted">这里还没有 PI 决策记录。</p>
+      </div>
+      {% endif %}
+    </article>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">流程推进</p>
+        <h2>把成员安排到每一个流程环节</h2>
+        <p class="panel-copy">先选择一套流程，再为每个环节指定负责成员。没有配置成员时，流程不会运行。</p>
+      </div>
+    </div>
+
+    <form method="post" action="{{ url_for('update_project_process', slug=slug) }}" class="stack-form">
+      <div class="grid two-up project-process-top">
+        <label>
+          <span>研究流程</span>
+          <select name="process_id">
+            {% for template in process_view.templates %}
+            <option value="{{ template.id }}" {% if template.id == process_view.selected.id %}selected{% endif %}>{{ template.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>当前步骤</span>
+          <select name="process_step">
+            {% for step in process_view.steps %}
+            <option value="{{ step.id }}" {% if step.is_current %}selected{% endif %}>{{ step.label }}</option>
+            {% endfor %}
+          </select>
+        </label>
+      </div>
+
+      <div class="process-step-grid project-process-grid">
+        {% for step in process_view.steps %}
+        <article class="section-card process-step-card {% if step.is_current %}process-step-current{% endif %}">
+          <div class="project-topline">
+            <strong>{{ step.label }}</strong>
+            {% if step.is_current %}
+            <span class="pill pill-ok">当前步骤</span>
+            {% else %}
+            <span class="pill">{{ step.assigned_count }} 位成员</span>
+            {% endif %}
+          </div>
+          {% if step.summary %}
+          <p class="process-step-summary">{{ step.summary }}</p>
+          {% endif %}
+          {% if step.assigned_roles %}
+          <div class="role-flags process-step-roles">
+            {% for role_name in step.assigned_roles %}
+            <span class="pill">{{ role_name }}</span>
+            {% endfor %}
+          </div>
+          {% else %}
+          <p class="muted process-step-empty">还没有安排成员。</p>
+          {% endif %}
+
+          <details class="role-card-details process-assignment-details">
+            <summary>↓ 安排成员 ↓</summary>
+            <div class="role-card-body">
+              <fieldset class="process-checkbox-grid">
+                <legend>负责成员</legend>
+                <div class="checkbox-grid">
+                  {% for role_id, spec in role_specs.items() %}
+                  <label class="check-card">
+                    <input
+                      type="checkbox"
+                      name="process_assignments_{{ step.id }}"
+                      value="{{ role_id }}"
+                      {% if role_id in step.assigned_role_ids %}checked{% endif %}
+                    >
+                    <span>{{ spec.name }}</span>
+                  </label>
+                  {% endfor %}
+                </div>
+              </fieldset>
+            </div>
+          </details>
+        </article>
+        {% endfor %}
+      </div>
+
+      <button type="submit">保存流程安排</button>
+    </form>
+  </section>
+
+  <section class="grid two-up project-page-grid">
+    <article class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">运行当前步骤</p>
+          <h2>推进本轮流程</h2>
+          <p class="panel-copy">
+            {% if process_view.current_step %}
+            当前步骤是 {{ process_view.current_step.label }}。
+            {% else %}
+            请先为这个项目选择一套流程。
+            {% endif %}
+          </p>
+        </div>
+        {% if process_view.current_step %}
+        <span class="pill {% if process_view.current_step.assigned_count %}pill-ok{% else %}pill-warn{% endif %}">
+          {{ process_view.current_step.assigned_count }} 位成员
+        </span>
+        {% endif %}
+      </div>
+
+      {% if process_view.current_step %}
+      <div class="process-meta-block">
+        <strong>{{ process_view.current_step.label }}</strong>
+        {% if process_view.current_step.summary %}
+        <p>{{ process_view.current_step.summary }}</p>
+        {% endif %}
+        {% if process_view.current_step.assigned_roles %}
+        <div class="role-flags">
+          {% for role_name in process_view.current_step.assigned_roles %}
+          <span class="pill">{{ role_name }}</span>
+          {% endfor %}
+        </div>
+        {% else %}
+        <p class="muted">这个步骤还没有安排成员。</p>
+        {% endif %}
+      </div>
+
+      <form method="post" action="{{ url_for('trigger_process', slug=slug) }}" class="stack-form">
+        <label>
+          <span>PI 补充要求</span>
+          <textarea name="goal" rows="4" placeholder="这一轮希望他们优先回答什么、完成什么，或者特别注意哪些风险。"></textarea>
+        </label>
+        <label class="inline-check">
+          <input type="checkbox" name="execute">
+          <span>直接完成本轮产出</span>
+        </label>
+        <button type="submit">运行当前步骤</button>
+      </form>
+      {% else %}
+      <div class="empty-state compact-empty">
+        <p class="muted">请先为这个项目选择流程并保存。</p>
+      </div>
+      {% endif %}
+    </article>
+
+    <article class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">整轮推进</p>
+          <h2>批量触发一组工作</h2>
+          <p class="panel-copy">如果你想直接发起整轮博士生评审或硕士生执行，可以在这里批量推进。</p>
+        </div>
+      </div>
+      <form method="post" action="{{ url_for('trigger_pipeline', slug=slug) }}" class="stack-form">
+        <label>
+          <span>推进方式</span>
+          <select name="preset">
+            {% for preset, role_ids in pipeline_specs.items() %}
+            <option value="{{ preset }}">{{ pipeline_labels.get(preset, preset) }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>PI 补充说明</span>
+          <textarea name="goal" rows="4" placeholder="给这一整轮推进写一段总要求。"></textarea>
+        </label>
+        <label class="inline-check">
+          <input type="checkbox" name="execute">
+          <span>直接完成这轮产出</span>
+        </label>
+        <button type="submit">开始这一轮推进</button>
+      </form>
+    </article>
+  </section>
+</div>
+
+<div data-project-tab-panel="agents" hidden>
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">博士生评审层</p>
+        <h2>先看判断，再看详情</h2>
+        <p class="panel-copy">默认只展示核心结论与最近任务，详细内容放在展开区里。</p>
+      </div>
+    </div>
+    <div class="agent-grid phd-grid">
+      {% for card in grouped_cards.phd %}
+      <article class="agent-card phd-card {% if not card.active %}agent-card-muted{% endif %}">
+        <div class="agent-card-head">
+          <h3 class="role-card-name">{{ card.name }}</h3>
+          <span class="agent-status {% if card.deliverable_ready %}agent-status-ready{% else %}agent-status-pending{% endif %}">
+            {% if card.deliverable_ready %}已有判断{% else %}等待推进{% endif %}
+          </span>
+        </div>
+        <p class="phd-summary">{{ card.excerpt or card.latest_task }}</p>
+        {% if card.sections %}
+        <div class="mini-meta">
+          {% for section in card.sections[:2] %}
+          <p><strong>{{ section.heading }}</strong> {{ section.body }}</p>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <details class="role-card-details">
+          <summary>↓ 查看详情 ↓</summary>
+          <div class="role-card-body stack-form">
+            <div class="mini-meta">
+              <p><strong>最近任务：</strong>{{ card.latest_task }}</p>
+              {% if card.context_files %}
+              <p><strong>参考材料：</strong>{{ card.context_files|join('、') }}</p>
+              {% endif %}
+            </div>
+            <div class="agent-links">
+              <a class="button-link button-link-secondary button-link-inline" href="{{ url_for('view_project_file', slug=slug, path=card.deliverable_path) }}">查看结论</a>
+              {% if card.latest_prompt_path %}
+              <a class="button-link button-link-secondary button-link-inline" href="{{ url_for('view_project_file', slug=slug, path=card.latest_prompt_path) }}">查看本轮说明</a>
+              {% endif %}
+              {% if card.latest_response_path %}
+              <a class="button-link button-link-secondary button-link-inline" href="{{ url_for('view_project_file', slug=slug, path=card.latest_response_path) }}">查看产出</a>
+              {% endif %}
+            </div>
+
+            <form method="post" action="{{ url_for('trigger_role', slug=slug) }}" class="stack-form compact-form">
+              <input type="hidden" name="role_id" value="{{ card.role_id }}">
+              <label>
+                <span>补充要求</span>
+                <textarea name="task" rows="3" placeholder="写给这位成员的补充要求。"></textarea>
+              </label>
+              <label class="inline-check">
+                <input type="checkbox" name="execute">
+                <span>直接完成这轮产出</span>
+              </label>
+              <button type="submit">单独推进这位成员</button>
+            </form>
+          </div>
+        </details>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">硕士生执行层</p>
+        <h2>执行卡片</h2>
+        <p class="panel-copy">这里保留每位硕士生的执行概况和进入详情的入口。</p>
+      </div>
+    </div>
+    <div class="agent-grid">
+      {% for card in grouped_cards.ma %}
+      <article class="agent-card {% if not card.active %}agent-card-muted{% endif %}">
+        <div class="agent-card-head">
+          <h3 class="role-card-name">{{ card.name }}</h3>
+          <span class="agent-status {% if card.deliverable_ready %}agent-status-ready{% else %}agent-status-pending{% endif %}">
+            {% if card.deliverable_ready %}已有产出{% else %}等待推进{% endif %}
+          </span>
+        </div>
+        <p class="phd-summary">{{ card.excerpt or card.latest_task }}</p>
+
+        <details class="role-card-details">
+          <summary>↓ 查看详情 ↓</summary>
+          <div class="role-card-body stack-form">
+            <div class="mini-meta">
+              <p><strong>最近任务：</strong>{{ card.latest_task }}</p>
+              {% if card.context_files %}
+              <p><strong>参考材料：</strong>{{ card.context_files|join('、') }}</p>
+              {% endif %}
+            </div>
+            <div class="agent-links">
+              <a class="button-link button-link-secondary button-link-inline" href="{{ url_for('view_project_file', slug=slug, path=card.deliverable_path) }}">查看产出</a>
+              {% if card.latest_prompt_path %}
+              <a class="button-link button-link-secondary button-link-inline" href="{{ url_for('view_project_file', slug=slug, path=card.latest_prompt_path) }}">查看本轮说明</a>
+              {% endif %}
+              {% if card.latest_response_path %}
+              <a class="button-link button-link-secondary button-link-inline" href="{{ url_for('view_project_file', slug=slug, path=card.latest_response_path) }}">查看结果</a>
+              {% endif %}
+            </div>
+          </div>
+        </details>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+
+<div data-project-tab-panel="records" hidden>
+  <section class="grid two-up project-page-grid">
+    <article class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">任务安排</p>
+          <h2>创建一张新的任务单</h2>
+          <p class="panel-copy">把这一轮要做的文献、数据、清洗或复核工作写成明确任务，再发给对应成员。</p>
+        </div>
+      </div>
+      <form method="post" action="{{ url_for('create_project_ticket', slug=slug) }}" class="stack-form">
+        <label>
+          <span>分配给谁</span>
+          <select name="role_id">
+            {% for role_id, spec in role_specs.items() %}
+            <option value="{{ role_id }}">{{ spec.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>
+          <span>任务标题</span>
+          <input type="text" name="title" placeholder="例如：补齐基金申购赎回变量口径">
+        </label>
+        <label>
+          <span>任务背景</span>
+          <textarea name="description" rows="4" placeholder="这一轮任务为什么需要做、希望解决什么问题。"></textarea>
+        </label>
+        <label>
+          <span>输入材料</span>
+          <textarea name="inputs" rows="3" placeholder="列出这张任务单建议参考的文件或材料。"></textarea>
+        </label>
+        <label>
+          <span>验收标准</span>
+          <textarea name="acceptance" rows="3" placeholder="交付后你会按什么标准判断这轮任务完成。"></textarea>
+        </label>
+        <button type="submit">创建任务单</button>
+      </form>
+    </article>
+
+    <article class="panel">
+      <div class="panel-head">
+        <div>
+          <p class="eyebrow">待办任务</p>
+          <h2>项目里的任务单</h2>
+          <p class="panel-copy">所有还在推进中的任务都会保留在这里，便于你快速回看。</p>
+        </div>
+      </div>
+      {% if tickets %}
+      <div class="search-filter-panel">
+        <input 
+          type="text" 
+          placeholder="搜索任务单..." 
+          class="search-input"
+          data-search-target=".ticket-card"
+        >
+        <span class="search-stats" data-search-stats></span>
+      </div>
+      <div class="ticket-list" id="tickets-list">
+        {% for ticket in tickets %}
+        <article class="ticket-card">
+          <strong>{{ ticket.title }}</strong>
+          <p>{{ ticket.excerpt }}</p>
+          <a class="stage-link" href="{{ url_for('view_project_file', slug=slug, path=ticket.path) }}">查看任务单</a>
+        </article>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="empty-state compact-empty">
+        <p class="muted">这里还没有待办任务。</p>
+      </div>
+      {% endif %}
+    </article>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">推进记录</p>
+        <h2>最近几轮</h2>
+        <p class="panel-copy">这里保留最近几轮说明和产出的入口，方便你回看每次推进做了什么。</p>
+      </div>
+    </div>
+
+    {% if runs %}
+    <div class="search-filter-panel">
+      <input 
+        type="text" 
+        placeholder="搜索推进记录（角色、时间）..." 
+        class="search-input"
+        data-search-target=".run-record-item"
+      >
+      <span class="search-stats" data-search-stats></span>
+    </div>
+    <div class="run-list" id="runs-list" data-auto-refresh="true" data-refresh-interval="30000" data-project-slug="{{ slug }}">
+      {% for run in runs %}
+      <article class="run-card run-record-item">
+        <div class="run-topline">
+          <strong>{{ role_specs[run.role_id].name if run.role_id in role_specs else run.role_id }}</strong>
+          <span class="pill {% if run.executed %}pill-ok{% else %}pill-warn{% endif %}">
+            {% if run.executed %}已有产出{% else %}仅有本轮说明{% endif %}
+          </span>
+        </div>
+        <p>{{ run.task }}</p>
+        {% if run.context %}
+        <p class="muted">参考材料：{{ run.context|join('、') }}</p>
+        {% endif %}
+        <div class="agent-links">
+          <a class="button-link button-link-secondary button-link-inline" href="{{ url_for('view_project_file', slug=slug, path=run.prompt_path) }}">查看本轮说明</a>
+          {% if run.response_path %}
+          <a class="button-link button-link-secondary button-link-inline" href="{{ url_for('view_project_file', slug=slug, path=run.response_path) }}">查看结果</a>
+          {% endif %}
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state compact-empty">
+      <p class="muted">这里还没有新的推进记录。</p>
+    </div>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}
+
+{% block page_scripts %}
+<script>
+  (() => {
+    const storageKey = "econflow-project-tab-{{ slug }}";
+    const buttons = Array.from(document.querySelectorAll("[data-project-tab-trigger]"));
+    const panels = Array.from(document.querySelectorAll("[data-project-tab-panel]"));
+    const savedTab = window.localStorage.getItem(storageKey) || "workflow";
+
+    function activateTab(tabId) {
+      buttons.forEach((button) => {
+        const isActive = button.dataset.projectTabTrigger === tabId;
+        button.classList.toggle("project-tab-button-active", isActive);
+      });
+      panels.forEach((panel) => {
+        panel.hidden = panel.dataset.projectTabPanel !== tabId;
+      });
+      window.localStorage.setItem(storageKey, tabId);
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => activateTab(button.dataset.projectTabTrigger || "workflow"));
+    });
+
+    activateTab(savedTab);
+  })();
+</script>
+<script src="{{ url_for('static', filename='editor-enhancements.js') }}"></script>
+{% endblock %}

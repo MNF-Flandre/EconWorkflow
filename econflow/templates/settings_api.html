@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}API 设置 | 研究实验室{% endblock %}
+
+{% block content %}
+<section class="hero compact-hero">
+  <div class="hero-main">
+    <p class="eyebrow">API 设置</p>
+    <h1>管理模型接入与密钥</h1>
+    <p class="hero-copy">这里单独处理模型接入，不和项目研究或人员安排混在一起。不同服务的地址、模型和密钥都集中放在这里。</p>
+  </div>
+  <aside class="hero-side">
+    <div class="hero-card">
+      <p class="hero-label">当前状态</p>
+      {% if llm_ready %}
+      <p class="hero-metric">ON</p>
+      <p class="hero-submeta">当前已经可以直接产出研究内容。</p>
+      {% else %}
+      <p class="hero-metric">OFF</p>
+      <p class="hero-submeta">目前还停留在手动安排阶段。</p>
+      {% endif %}
+    </div>
+  </aside>
+</section>
+
+<section class="grid two-up api-settings-grid">
+  <article class="panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">接口设置</p>
+        <h2>基础配置</h2>
+      </div>
+      {% if api_key_masked %}
+      <span class="pill pill-ok">{{ api_key_masked }}</span>
+      {% else %}
+      <span class="pill pill-warn">尚未保存密钥</span>
+      {% endif %}
+    </div>
+
+    <form method="post" action="{{ url_for('save_llm_settings') }}" class="stack-form">
+      <input type="hidden" name="next" value="{{ url_for('api_settings') }}">
+
+      <label>
+        <span>接入方式</span>
+        <select name="mode">
+          <option value="prompt-only" {% if llm_config.mode == 'prompt-only' %}selected{% endif %}>只生成任务说明</option>
+          <option value="openai-compatible" {% if llm_config.mode == 'openai-compatible' %}selected{% endif %}>直接产出内容</option>
+        </select>
+      </label>
+
+      <label>
+        <span>接入地址</span>
+        <input type="text" name="base_url" value="{{ llm_config.base_url }}">
+      </label>
+
+      <label>
+        <span>模型</span>
+        <input type="text" name="model" value="{{ llm_config.model }}">
+      </label>
+
+      <label>
+        <span>密钥名称</span>
+        <input type="text" name="api_key_env" value="{{ llm_config.api_key_env }}">
+      </label>
+
+      <label>
+        <span>密钥</span>
+        <input type="password" name="api_key" placeholder="输入你的 key">
+      </label>
+
+      <button type="submit">保存接入设置</button>
+    </form>
+  </article>
+
+  <article class="panel api-summary-panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">接入概览</p>
+        <h2>当前摘要</h2>
+      </div>
+    </div>
+
+    <div class="api-summary-stack">
+      <dl class="metric-strip api-metric-strip">
+        <div class="metric-tile">
+          <dt>接入方式</dt>
+          <dd>{{ '直接产出内容' if llm_config.mode == 'openai-compatible' else '只生成任务说明' }}</dd>
+        </div>
+        <div class="metric-tile">
+          <dt>模型</dt>
+          <dd>{{ llm_config.model }}</dd>
+        </div>
+        <div class="metric-tile">
+          <dt>接入地址</dt>
+          <dd>{{ llm_config.base_url }}</dd>
+        </div>
+        <div class="metric-tile">
+          <dt>密钥名称</dt>
+          <dd>{{ llm_config.api_key_env }}</dd>
+        </div>
+      </dl>
+
+      <div class="section-stack api-summary-notes">
+        <div class="section-card">
+          <strong>保存之后</strong>
+          <p>地址、模型和接入方式会一并保存；密钥会单独记录，之后可以继续使用。</p>
+        </div>
+        <div class="section-card">
+          <strong>何时生效</strong>
+          <p>当你在项目页选择直接产出内容时，这里的接入设置就会被使用。</p>
+        </div>
+      </div>
+    </div>
+  </article>
+</section>
+{% endblock %}

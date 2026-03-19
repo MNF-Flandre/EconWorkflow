@@ -1,0 +1,69 @@
+# Econ-OS 2.0 Automated Rollback Decision Matrix
+# Determines which phase to rollback to based on failure conditions
+
+rollback_rules:
+  
+  phase_b2_failure:
+    trigger_condition: "is_duplicate_research == true"
+    trigger_metric: "Reviewer B2 finds identical hypothesis in literature"
+    action: "ROLLBACK_TO_B1"
+    target_agent: "B1 (Explorer)"
+    required_action: "Conduct new literature search, formulate alternative H"
+    decision_log_action: "REJECT_HYPOTHESIS"
+  
+  phase_c2_failure:
+    trigger_condition: "data_availability < 0.4"
+    trigger_metric: "Less than 40% of required variables available in confirmed sources"
+    action: "ROLLBACK_TO_C1"
+    target_agent: "C1 (Designer)"
+    required_action: "Find proxy variables or adjust research question scope"
+    decision_log_action: "REQUEST_REVISION"
+    escalation_level: "User notification required"
+  
+  phase_d2_failure_critical:
+    trigger_condition: "sample_loss_rate > 0.3"
+    trigger_metric: "More than 30% of sample lost through merge/filters"
+    action: "ROLLBACK_TO_DESIGN_LOCK"
+    target_agent: "C1/C2 (revisit specification)"
+    required_action: "Loosen sample filters or reconsider variable definitions"
+    decision_log_action: "AUDIT_RESULT"
+    severity: "HIGH"
+  
+  phase_d2_failure_warning:
+    trigger_condition: "0.15 < sample_loss_rate <= 0.3"
+    action: "PASS_WITH_WARNING"
+    required_action: "Document loss pattern in audit_scorecard, proceed with caution"
+    decision_log_action: "AUDIT_RESULT"
+    severity: "MEDIUM"
+  
+  phase_e2_failure_major:
+    trigger_condition: "robustness_pass_rate < 0.5"
+    trigger_metric: "Less than 50% of stress tests pass (coefficient/pvalue stable)"
+    action: "ROLLBACK_TO_DESIGN_LOCK"
+    target_agent: "C1/C2 (revisit identification strategy)"
+    required_action: "Reconsider fixed effects, clustering, or sample specification"
+    decision_log_action: "TRIGGER_ROLLBACK"
+    severity: "CRITICAL"
+  
+  phase_e2_failure_minor:
+    trigger_condition: "0.5 <= robustness_pass_rate < 0.75"
+    action: "CONDITIONAL_PASS"
+    required_action: "Document sensitivity, include caveat in final report"
+    decision_log_action: "AUDIT_RESULT"
+    severity: "MEDIUM"
+  
+  phase_e2_failure_statistical:
+    trigger_condition: "p_value >= 0.05 OR vif > 10"
+    action: "ESCALATE_TO_USER"
+    decision_log_action: "ESCALATE_TO_USER"
+    note: "Cannot automatically rollback; requires user decision on publication vs redesign"
+
+automation_level:
+  automatic_rollback: ["B2_duplicate", "D2_critical_loss"]
+  conditional_rollback: ["D2_warning", "E2_major"]
+  escalation_required: ["E2_statistical_insignificance"]
+
+fallback_to_agent_a:
+  condition: "Multiple conflicting recommendations"
+  action: "Agent A makes final decision, logs in decision_log"
+  criteria: "Align with research integrity; choose publication vs redesign"

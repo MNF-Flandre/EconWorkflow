@@ -1,0 +1,196 @@
+﻿/* 编辑增强功能样式 */
+
+/* ===== 代码高亮 ===== */
+pre.file-content {
+  background-color: #f5f5f5;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: var(--panel-padding);
+  margin-bottom: var(--card-gap);
+  overflow-x: auto;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+pre.file-content.hljs {
+  background-color: #f8f8f8;
+  color: #383a42;
+  padding: var(--panel-padding);
+}
+
+/* CodeMirror 编辑器容器 */
+#markdown-editor {
+  display: none;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--card-gap);
+  background: white;
+}
+
+#markdown-editor.editor-active {
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+#editor-toolbar {
+  display: flex;
+  gap: var(--nested-gap);
+  padding: var(--inner-gap) var(--panel-padding);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-soft);
+}
+
+#editor-toolbar button {
+  padding: 8px 16px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+#editor-toolbar button:hover {
+  background: var(--accent-deep);
+}
+
+#editor-toolbar button.cancel {
+  background: var(--muted);
+}
+
+#editor-toolbar button.cancel:hover {
+  background: var(--ink-soft);
+}
+
+.CodeMirror {
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+  font-size: 0.9rem;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
+  line-height: 1.5;
+  min-height: 400px;
+  padding: var(--nested-gap) !important;
+}
+
+/* ===== 搜索过滤面板 ===== */
+.search-filter-panel {
+  display: flex;
+  align-items: center;
+  gap: var(--inner-gap);
+  margin-bottom: var(--nested-gap);
+  padding: var(--inner-gap) var(--panel-padding);
+  background: var(--surface-soft);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+}
+
+.search-input {
+  flex: 1;
+  padding: 10px 14px;
+  font-size: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: white;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.search-input::placeholder {
+  color: var(--muted);
+}
+
+.search-stats {
+  font-size: 0.8rem;
+  color: var(--muted);
+  min-width: 120px;
+  text-align: right;
+}
+
+/* ===== 搜索隐藏项 ===== */
+.search-hidden {
+  display: none !important;
+}
+#edit-file-button {
+  padding: 8px 16px;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+#edit-file-button:hover {
+  background: var(--accent-deep);
+}
+
+#edit-file-button.editor-mode-active {
+  background: var(--warn);
+  font-weight: 600;
+}
+
+#edit-file-button.editor-mode-active:hover {
+  background: #b8472c;
+}
+
+.file-actions {
+  display: flex;
+  gap: var(--nested-gap);
+  margin-bottom: var(--section-gap);
+  padding: var(--inner-gap) 0;
+}
+
+/* ===== 运行记录和任务列表项 ===== */
+.run-card,
+.run-record-item,
+.ticket-card {
+  transition: opacity 0.2s;
+}
+
+/* ===== 自动刷新指示 ===== */
+.auto-refresh-indicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  background: var(--accent);
+  color: white;
+  border-radius: var(--radius-sm);
+  opacity: 0.7;
+  z-index: 1000;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* ===== 响应式调整 ===== */
+@media (max-width: 768px) {
+  .CodeMirror {
+    min-height: 300px;
+  }
+  
+  .search-filter-panel {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .search-input {
+    width: 100%;
+  }
+}

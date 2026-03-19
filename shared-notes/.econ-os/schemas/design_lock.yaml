@@ -1,0 +1,68 @@
+# Econ-OS 2.0 Design Lock Schema
+# Locked output of: Phase 2 (Mapping & Lock Phase)
+# Input: hypotheses.yaml from Phase 1
+# Cannot be modified in Phase 3-5 without documented escalation
+
+LOCKED_AT: ISO8601_timestamp
+LOCKED_BY: string  # Agent A + User
+
+core_variables:
+  dependent_variable:
+    name: string
+    definition: string
+    source_dataset: string
+    sample_period: "YYYY-MM to YYYY-MM"
+    
+  main_explanatory_variables:
+    - var_id: "X1"
+      name: string
+      definition: string
+      source_dataset: string
+      construction_logic: string
+        # E.g., "Winsorized at 1% level" or "Annualized from quarterly"
+      lag_structure: integer  # 0 for contemp, 1 for lagged 1 period, etc.
+  
+  controls_pool:
+    - var_id: "C1"
+      name: string
+      rationale: string
+        # Why this control is needed (omitted variable bias, etc.)
+
+specification:
+  estimator: "OLS" | "FE" | "RE" | "GMM" | "PSM"
+  
+  fixed_effects:
+    - effect_type: "time" | "entity" | "group"
+      dimension: string  # e.g., "year", "firm_id"
+  
+  clustering:
+    - cluster_level: string  # e.g., "firm", "year"
+      rationale: string
+  
+  sample_selection_logic:
+    - rule_id: "EXCL_1"
+      description: string  # e.g., "Drop if revenue < 0"
+      expected_sample_loss_pct: float  # e.g., 5.2
+
+data_sources:
+  - source_name: string  # e.g., "CSMAR", "WRDS"
+    availability_status: "confirmed" | "pending" | "unavailable"
+    coverage: "YYYY-MM to YYYY-MM"
+    key_tables: [string]
+    contact_person: string  # For applied access
+
+validation_by_c2:
+  merge_coverage: float  # e.g., 0.92 = 92% of target sample retained
+  key_uniqueness_check: bool  # Checked by C2
+  missing_pattern: string  # e.g., "MCAR" or "systematic"
+  approval_timestamp: ISO8601_timestamp
+
+phase_2_approval_gate:
+  c1_design_ready: bool
+  c2_audit_passed: bool
+  readiness_level: "LOCKED" | "PENDING_REVISION"
+
+frozen_until_escalation:
+  - "No variable substitution in Phase 3-5 without decision_log entry"
+  - "No change to fixed effects without explicit rollback"
+  - "No change to sample filters without data audit re-run"

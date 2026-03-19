@@ -1,0 +1,268 @@
+{
+  "econ_os_version": "2.0",
+  "workflow_name": "Automated Economics Research Pipeline",
+  
+  "phases": [
+    {
+      "phase_id": "phase_1",
+      "phase_name": "Discovery Phase - Ideation & Literature Alignment",
+      "phase_duration_days": 21,
+      
+      "objectives": [
+        "Convert raw idea into hypothesis with literature support",
+        "Identify conceptual gaps",
+        "Establish baseline empirical predictions"
+      ],
+      
+      "agents": [
+        {
+          "role_id": "B1",
+          "role_name": "Explorer / Literature Researcher",
+          "responsibilities": [
+            "Systematic literature search on topic",
+            "Synthesize 20+ papers into lit_map.yaml",
+            "Identify trends, gaps, and unexplored mechanisms"
+          ],
+          "deliverables": ["lit_map.yaml"],
+          "quality_gates": ["Search strategy documented", "Conflicts flagged"]
+        },
+        {
+          "role_id": "B2",
+          "role_name": "Challenger / Skeptical Reviewer",
+          "responsibilities": [
+            "Independently verify B1's finding",
+            "Search for (a) contradictory evidence, (b) published duplicates",
+            "Red-team the hypothesis"
+          ],
+          "deliverables": ["b2_audit_report.md"],
+          "decision_log_trigger": "REJECT_HYPOTHESIS if duplicate found"
+        }
+      ],
+      
+      "agent_a_checkpoint": {
+        "input": ["lit_map.yaml", "b2_audit_report.md"],
+        "decision": "Synthesize into hypotheses.yaml",
+        "pass_criteria": [
+          "gap_defined == true",
+          "h_candidates logically coherent",
+          "No duplicate research detected"
+        ],
+        "failure_action": "ROLLBACK_to_B1 with specific revision request"
+      }
+    },
+    
+    {
+      "phase_id": "phase_2",
+      "phase_name": "Mapping & Design Lock - Specification Freeze",
+      "phase_duration_days": 14,
+      
+      "objectives": [
+        "Translate H1/H2... into concrete variables",
+        "Define dataset sources and sample filters",
+        "Create IMMUTABLE specification (cannot be changed in Phase 3-5)"
+      ],
+      
+      "agents": [
+        {
+          "role_id": "C1",
+          "role_name": "Specification Designer",
+          "responsibilities": [
+            "Map hypotheses to dependent/explanatory/control variables",
+            "Define sample selection logic, fixed effects, clustering",
+            "Create design_lock.yaml"
+          ],
+          "deliverables": ["design_lock.yaml (draft)"],
+          "inputs_from": ["hypotheses.yaml"]
+        },
+        {
+          "role_id": "C2",
+          "role_name": "Data Availability Auditor",
+          "responsibilities": [
+            "Verify each variable exists & is obtainable",
+            "Check mouth-to-mouth consistency (variable definitions align)",
+            "Report coverage % for each data source"
+          ],
+          "deliverables": ["c2_data_availability_report.md"],
+          "decision_log_trigger": "REQUEST_REVISION if data_availability < 0.4"
+        }
+      ],
+      
+      "agent_a_checkpoint": {
+        "input": ["design_lock.yaml (draft)", "c2_data_availability_report.md"],
+        "decision": "LOCK design_lock.yaml with timestamp",
+        "pass_criteria": [
+          "c1_design_ready == true",
+          "c2_audit_passed == true",
+          "All required variables available",
+          "merge_coverage_expected > 0.85"
+        ],
+        "locked_items": [
+          "Dependent variable definition",
+          "Core explanatory variables",
+          "Control variable pool",
+          "Fixed effects hierarchy",
+          "Clustering specification",
+          "Sample selection filters"
+        ],
+        "frozen_warning": "No changes allowed in Phase 3-5 without explicit rollback decision"
+      }
+    },
+    
+    {
+      "phase_id": "phase_3",
+      "phase_name": "Data Engineering & Quality Audit",
+      "phase_duration_days": 28,
+      
+      "objectives": [
+        "Execute merge/lag/winsorize per design_lock.yaml",
+        "Run comprehensive data quality audit",
+        "Produce analysis-ready dataset"
+      ],
+      
+      "agents": [
+        {
+          "role_id": "D1",
+          "role_name": "Data Cleaner / Engineer",
+          "responsibilities": [
+            "Implement Merge logic (join all sources per design_lock)",
+            "Implement Lag operators (alignment to event date)",
+            "Implement Winsorization (per design_lock parameters)",
+            "Produce clean_data.parquet"
+          ],
+          "deliverables": ["clean_data.parquet", "d1_cleaning_log.md"],
+          "inputs_from": ["design_lock.yaml"]
+        },
+        {
+          "role_id": "D2",
+          "role_name": "Data Quality Auditor",
+          "responsibilities": [
+            "Run audit_suite: check sample_loss_tree, key uniqueness, missing pattern",
+            "Generate data_audit_scorecard.json",
+            "Flag any deviations from design_lock"
+          ],
+          "deliverables": ["data_audit_scorecard.json"],
+          "decision_log_trigger": [
+            "AUDIT_RESULT if merge_coverage >= 0.85: PASS",
+            "AUDIT_RESULT if 0.15 <= sample_loss <= 0.3: PASS_WITH_WARNING",
+            "TRIGGER_ROLLBACK if sample_loss > 0.3"
+          ]
+        }
+      ],
+      
+      "agent_a_checkpoint": {
+        "input": ["data_audit_scorecard.json"],
+        "rollback_rule": "IF merge_coverage < 0.85 THEN ROLLBACK_to_phase_C (reconsider variables)"
+      }
+    },
+    
+    {
+      "phase_id": "phase_4",
+      "phase_name": "Econometrics Execution & Adversarial Testing",
+      "phase_duration_days": 21,
+      
+      "objectives": [
+        "Estimate baseline specification per design_lock.yaml",
+        "Launch 'stress test' suite to verify robustness",
+        "Produce regression_scorecard.json with pass/fail decision"
+      ],
+      
+      "agents": [
+        {
+          "role_id": "E1",
+          "role_name": "Baseline Regression Runner",
+          "responsibilities": [
+            "Execute OLS/FE/RE per design_lock.yaml (fixed effects, clustering, etc.)",
+            "Produce tables: coefficients, std errors, p-values",
+            "Log all model specifications"
+          ],
+          "deliverables": ["baseline_regression.csv", "e1_regression_log.md"],
+          "inputs_from": ["clean_data.parquet", "design_lock.yaml"]
+        },
+        {
+          "role_id": "E2",
+          "role_name": "Adversarial Econometrics Auditor",
+          "responsibilities": [
+            "STRESS TESTS: (1) Re-cluster at different levels, (2) Placebo in presample",
+            "(3) Drop outliers, (4) Subsample robustness",
+            "Measure coefficient/pvalue stability across tests",
+            "Generate regression_scorecard.json with robustness_pass_rate"
+          ],
+          "deliverables": ["regression_scorecard.json"],
+          "decision_log_trigger": [
+            "AUDIT_RESULT if robustness_pass_rate >= 0.75: PASS",
+            "AUDIT_RESULT if 0.5 <= robustness_pass_rate < 0.75: PASS_WITH_CAVEATS",
+            "TRIGGER_ROLLBACK to design_lock if robustness_pass_rate < 0.5"
+          ]
+        }
+      ],
+      
+      "agent_a_checkpoint": {
+        "input": ["regression_scorecard.json"],
+        "decision_logic": "Check rollback_decision_matrix in scorecard",
+        "rollback_rule": "IF robustness_pass_rate < 0.5 THEN ROLLBACK_to_design_lock (reconsider identification)"
+      }
+    },
+    
+    {
+      "phase_id": "phase_5",
+      "phase_name": "Synthesis & Audit Trail Generation",
+      "phase_duration_days": 14,
+      
+      "objectives": [
+        "Reconcile results with pre-registered hypotheses",
+        "Simulate top journal peer review",
+        "Produce final_report.md with full decision_log trace"
+      ],
+      
+      "agents": [
+        {
+          "role_id": "F1",
+          "role_name": "Narrative & Economics Interpreter",
+          "responsibilities": [
+            "Compare actual results to H1/H2... in hypotheses.yaml",
+            "Provide economic interpretation of coefficients",
+            "Draft final_report.md with results section"
+          ],
+          "deliverables": ["final_report.md (draft)"],
+          "inputs_from": ["hypotheses.yaml", "regression_scorecard.json"]
+        },
+        {
+          "role_id": "F2",
+          "role_name": "Journal Peer Reviewer / Skeptic",
+          "responsibilities": [
+            "Simulate Top 5 journal reviewer critique:",
+            "- Check for endogeneity/omitted variable bias",
+            "- Test for overinterpretation",
+            "- Verify design_lock was respected (not p-hacked)",
+            "- Demand alternate explanations"
+          ],
+          "deliverables": ["f2_peer_review_report.md"],
+          "decision_log_output": "Final critique report"
+        }
+      ],
+      
+      "agent_a_checkpoint": {
+        "input": ["final_report.md (draft)", "f2_peer_review_report.md", "decision_log.jsonl"],
+        "decision": "Synthesize into final_report.md + publish decision_log.jsonl",
+        "final_checklist": [
+          "All rejected hypotheses documented with rationale",
+          "design_lock.yaml frozen at beginning of Phase 2",
+          "No specification changes post-hoc",
+          "Full traceback from hypotheses.yaml → results available",
+          "Robustness tests completed"
+        ]
+      }
+    }
+  ],
+  
+  "global_controls": {
+    "decision_log_file": ".econ-os/decision_log.jsonl",
+    "audit_trail_enabled": true,
+    "mandatory_approvals": [
+      "Agent_A at end of each phase",
+      "User sign-off at rollback decisions"
+    ],
+    "specification_freeze_point": "End of Phase 2 (design_lock.yaml)",
+    "allowed_changes_after_freeze": "NONE without explicit rollback decision"
+  }
+}

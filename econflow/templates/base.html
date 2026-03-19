@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}研究实验室{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='editor-enhancements.css') }}">
+  </head>
+  <body>
+    <div class="app-layout">
+      <aside class="sidebar">
+        <div class="sidebar-panel">
+          <div class="brand-lockup">
+            <p class="brand-kicker">PI 研究实验室</p>
+            <a class="home-link" href="{{ url_for('research_overview') }}">研究实验室</a>
+            <p class="subtitle">在这里安排接口、成员、流程与项目推进。</p>
+          </div>
+
+          <nav class="sidebar-nav">
+            <a class="nav-link {% if request.endpoint == 'api_settings' %}nav-link-active{% endif %}" href="{{ url_for('api_settings') }}">
+              <span>API 设置</span>
+            </a>
+            <a class="nav-link {% if request.endpoint in ['people_settings', 'create_people_profile', 'save_people_profile', 'delete_people_profile'] %}nav-link-active{% endif %}" href="{{ url_for('people_settings') }}">
+              <span>人员配置</span>
+            </a>
+            <a class="nav-link {% if request.endpoint in ['process_settings', 'save_process_template_from_ui', 'set_current_process_from_ui', 'delete_process_template_from_ui'] %}nav-link-active{% endif %}" href="{{ url_for('process_settings') }}">
+              <span>流程设置</span>
+            </a>
+            <a class="nav-link {% if request.endpoint in ['index', 'research_overview', 'create_project_from_ui', 'project_dashboard', 'view_project_file', 'update_project_state', 'update_project_process', 'add_pi_decision', 'trigger_role', 'trigger_pipeline', 'trigger_process', 'create_ticket_from_ui', 'delete_project_from_ui'] %}nav-link-active{% endif %}" href="{{ url_for('research_overview') }}">
+              <span>项目研究</span>
+            </a>
+          </nav>
+
+          <section class="sidebar-status">
+            <p class="eyebrow">当前状态</p>
+            {% if llm_ready %}
+            <span class="pill pill-ok">模型已连接</span>
+            {% else %}
+            <span class="pill pill-warn">模型未连接</span>
+            {% endif %}
+            <p class="muted">所有设置与研究产出都会保留在当前工作区。</p>
+          </section>
+        </div>
+      </aside>
+
+      <div class="content-shell">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <section class="flash-stack">
+              {% for category, message in messages %}
+                {% if category == 'error' %}
+                <div class="flash flash-{{ category }} flash-modal-source" hidden>{{ message }}</div>
+                {% else %}
+                <div class="flash flash-{{ category }}" data-flash-temporary>{{ message }}</div>
+                {% endif %}
+              {% endfor %}
+            </section>
+          {% endif %}
+        {% endwith %}
+
+        <main>
+          {% block content %}{% endblock %}
+        </main>
+      </div>
+    </div>
+
+    <dialog class="confirm-dialog" id="confirm-dialog">
+      <form method="dialog" class="confirm-dialog-card">
+        <p class="eyebrow">请确认</p>
+        <h2 id="confirm-dialog-title">确认这个操作？</h2>
+        <p class="muted confirm-dialog-copy" id="confirm-dialog-text">这个操作会带来不可逆的变更。</p>
+        <div class="confirm-dialog-actions">
+          <button type="button" class="button-link button-link-secondary" id="confirm-dialog-cancel">取消</button>
+          <button type="button" class="button-link button-link-danger" id="confirm-dialog-submit">确认</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="confirm-dialog" id="alert-dialog">
+      <form method="dialog" class="confirm-dialog-card">
+        <p class="eyebrow">提醒</p>
+        <h2 id="alert-dialog-title">请检查</h2>
+        <p class="muted confirm-dialog-copy" id="alert-dialog-text">还有内容没有完成。</p>
+        <div class="confirm-dialog-actions">
+          <button type="button" class="button-link" id="alert-dialog-close">知道了</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script>
+      (() => {
+        const confirmDialog = document.getElementById("confirm-dialog");
+        const confirmTitle = document.getElementById("confirm-dialog-title");
+        const confirmText = document.getElementById("confirm-dialog-text");
+        const confirmCancel = document.getElementById("confirm-dialog-cancel");
+        const confirmSubmit = document.getElementById("confirm-dialog-submit");
+
+        const alertDialog = document.getElementById("alert-dialog");
+        const alertTitle = document.getElementById("alert-dialog-title");
+        const alertText = document.getElementById("alert-dialog-text");
+        const alertClose = document.getElementById("alert-dialog-close");
+
+        let activeFormId = "";
+
+        window.showAppAlert = (title, text) => {
+          if (!alertDialog || !alertTitle || !alertText) {
+            window.alert(text || title || "请检查当前内容。");
+            return;
+          }
+          alertTitle.textContent = title || "请检查";
+          alertText.textContent = text || "";
+          alertDialog.showModal();
+        };
+
+        if (confirmDialog && confirmTitle && confirmText && confirmCancel && confirmSubmit) {
+          document.addEventListener("click", (event) => {
+            const trigger = event.target.closest("[data-confirm-open]");
+            if (!trigger) {
+              return;
+            }
+            activeFormId = trigger.getAttribute("data-confirm-submit") || "";
+            confirmTitle.textContent = trigger.getAttribute("data-confirm-title") || "确认这个操作？";
+            confirmText.textContent = trigger.getAttribute("data-confirm-text") || "这个操作会带来不可逆的变更。";
+            confirmSubmit.textContent = trigger.getAttribute("data-confirm-action-label") || "确认";
+            confirmDialog.showModal();
+          });
+
+          confirmCancel.addEventListener("click", () => {
+            activeFormId = "";
+            confirmDialog.close();
+          });
+
+          confirmSubmit.addEventListener("click", () => {
+            if (!activeFormId) {
+              confirmDialog.close();
+              return;
+            }
+            const form = document.getElementById(activeFormId);
+            confirmDialog.close();
+            if (form) {
+              form.submit();
+            }
+          });
+        }
+
+        if (alertDialog && alertClose) {
+          alertClose.addEventListener("click", () => alertDialog.close());
+        }
+
+        const errorMessages = Array.from(document.querySelectorAll(".flash-modal-source"))
+          .map((node) => node.textContent.trim())
+          .filter(Boolean);
+        if (errorMessages.length) {
+          window.showAppAlert("请检查", errorMessages[0]);
+        }
+
+        const temporaryFlashes = Array.from(document.querySelectorAll("[data-flash-temporary]"));
+        temporaryFlashes.forEach((flash, index) => {
+          window.setTimeout(() => {
+            flash.classList.add("flash-dismissing");
+            window.setTimeout(() => flash.remove(), 240);
+          }, 2400 + index * 160);
+        });
+      })();
+    </script>
+    <script src="{{ url_for('static', filename='editor-enhancements.js') }}"></script>
+    {% block page_scripts %}{% endblock %}
+  </body>
+</html>

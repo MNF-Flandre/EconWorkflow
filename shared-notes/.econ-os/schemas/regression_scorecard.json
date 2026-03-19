@@ -1,0 +1,94 @@
+{
+  "_schema_version": "econ-os-2.0",
+  "_phase": "E2",
+  "_operator": "Econometrics Runner (E1) with Adversarial Auditor (E2)",
+  "_note": "overall_robustness_status options: PASS, FAIL_ROLLBACK_TO_DESIGN; decision options: PASS, TRIGGER_ROLLBACK",
+  
+  "overall_robustness_status": "PASS",
+  "baseline_result_valid": true,
+  
+  "baseline_regression": {
+    "model_spec": "As per design_lock.yaml",
+    "n_observations": 950,
+    "dependent_var": "log_return",
+    
+    "coefficients": {
+      "X1": {
+        "estimate": 0.15,
+        "std_error": 0.05,
+        "t_stat": 3.0,
+        "p_value": 0.003,
+        "ci_lower": 0.05,
+        "ci_upper": 0.25
+      }
+    },
+    
+    "model_fit": {
+      "r_squared": 0.35,
+      "adj_r_squared": 0.34,
+      "f_stat": 50.0,
+      "f_pvalue": 0.0
+    }
+  },
+  
+  "e2_stress_tests": {
+    "test_1_alternative_clustering": {
+      "description": "Re-estimate with clustering at different level",
+      "original_cluster": "firm",
+      "test_cluster": "industry",
+      "coeff_movement_pct": 2.5,
+      "pvalue_movement_pct": 1.2,
+      "passes_robustness": true,
+      "threshold": "coeff change <10%, p-value significant at 5%"
+    },
+    
+    "test_2_placebo_test": {
+      "description": "Run on presample period where treatment shouldn't exist",
+      "period": "2000-2005",
+      "placebo_coeff": 0.02,
+      "placebo_pvalue": 0.85,
+      "is_null": true,
+      "passes_validity": true,
+      "interpretation": "No spurious effect in control period"
+    },
+    
+    "test_3_exclude_extreme_outliers": {
+      "description": "Drop top/bottom 1% of outcome variable",
+      "coeff_movement_pct": 3.5,
+      "pvalue_movement_pct": 0.8,
+      "passes_robustness": true,
+      "threshold": "coeff change <15%"
+    },
+    
+    "test_4_alternative_sample": {
+      "description": "Subsample test (e.g., exclude certain industries)",
+      "subsample_criterion": "industry != 'finance'",
+      "coeff_movement_pct": 5.2,
+      "passes_robustness": true
+    }
+  },
+  
+  "vif_multicollinearity_check": {
+    "all_vif_under_10": true,
+    "max_vif": 6.2,
+    "flagged_variables": []
+  },
+  
+  "rollback_decision_matrix": {
+    "baseline_pvalue_lt_005": true,
+    "vif_all_under_10": true,
+    "robustness_pass_rate": 1.0,
+    "robustness_threshold": 0.5,
+    
+    "decision": "PASS",
+    "rollback_target": null,
+    "escalation_required": false
+  },
+  
+  "e2_auditor_sign_off": {
+    "auditor_name": "Adversarial Auditor Name",
+    "approval": true,
+    "timestamp": "2026-03-19T12:00:00Z",
+    "critical_issues": []
+  }
+}

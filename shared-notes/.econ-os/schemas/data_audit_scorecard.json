@@ -1,0 +1,72 @@
+{
+  "_schema_version": "econ-os-2.0",
+  "_phase": "D2",
+  "_auditor": "Data Quality Auditor",
+  "_note": "overall_status options: PASS, FAIL_ROLLBACK, PASS_WITH_WARNINGS",
+  
+  "overall_status": "PASS",
+  "passed_timestamp": "2026-03-19T12:00:00Z",
+  
+  "sample_loss_tree": {
+    "initial_universe": {
+      "count": 1000,
+      "description": "All records from raw data sources"
+    },
+    "merge_step_1": {
+      "count": 980,
+      "loss_pct": 0.02,
+      "loss_description": "Dropping unmatched keys in merge with [Dataset A]",
+      "acceptable": true
+    },
+    "sample_filter_step_1": {
+      "count": 950,
+      "loss_pct": 0.031,
+      "loss_description": "Applying year filter (2010-2020)",
+      "checkpoint_against_design_lock": true
+    },
+    "final_sample": {
+      "count": 950,
+      "total_loss_pct": 0.05,
+      "acceptable": true
+    }
+  },
+  
+  "data_quality_checks": {
+    "key_uniqueness": {
+      "status": "PASS",
+      "expected_keys": ["firm_id", "year"],
+      "duplicates_found": 0,
+      "duplicate_handling": "No duplicates detected"
+    },
+    "missing_value_distribution": {
+      "status": "PASS",
+      "variables_with_missing": {
+        "dependent_var": {
+          "missing_count": 0,
+          "missing_pct": 0.0,
+          "pattern": "MCAR",
+          "action_taken": "Listwise deletion"
+        }
+      }
+    },
+    "winsorization_applied": {
+      "variables": ["var1", "var2"],
+      "level_pct": 1.0,
+      "affected_observations": 5
+    }
+  },
+  
+  "rollback_trigger_checks": {
+    "merge_coverage_min_threshold": 0.85,
+    "actual_merge_coverage": 0.92,
+    "passes_threshold": true,
+    "if_failed_action": "Rollback to Phase C, reconsider variable definitions"
+  },
+  
+  "d2_auditor_sign_off": {
+    "auditor_name": "Data Auditor Name",
+    "approval": true,
+    "timestamp": "2026-03-19T12:00:00Z",
+    "notes": "All checks passed. Data ready for Phase E1."
+  }
+}

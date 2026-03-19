@@ -1,0 +1,18 @@
+{
+  "system_version": "econ-os-2.0",
+  "current_workflow": "econ-os-2.0",
+  "current_process_id": "econ-os-5-phase-pipeline",
+  "workflow_name": "Econ-OS 2.0: 5-Phase Automated Economics Research Pipeline",
+  "description": "Schema-driven, adversarial-audited, design-locked research workflow",
+  "active_since": "2026-03-19",
+  "phase_order": ["phase_1_discovery", "phase_2_lock", "phase_3_data_ops", "phase_4_econometrics", "phase_5_synthesis"],
+  "core_principles": [
+    "Schema-driven: YAML/JSON standardized file exchange",
+    "Non-symmetric verification: Executor + independent Auditor for each phase",
+    "Design lock: Immutable specification freeze at end of Phase 2",
+    "Agent A control: Scorecard-based gate logic only, no code semantics audit"
+  ],
+  "legacy_compatibility": "standard-research still available in agents/",
+  "decision_log_format": "JSONL (one JSON object per line)",
+  "audit_trail_enabled": true
+}

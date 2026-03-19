@@ -1,0 +1,27 @@
+# Econ-OS 2.0 Audit Trail (JSONL format - one JSON object per line)
+# Every decision, rejection, and rollback must be logged here
+
+# Example 1: Phase 1 rejection
+{"timestamp": "2026-03-19T10:30:00Z", "stage": "B2", "action": "REJECT_HYPOTHESIS", "rationale": "H3 is duplicate of Smith (2024)", "hypothesis_id": "H3", "alternatives_discarded": ["H3_variant_a"], "actor": "B2_Challenger_1"}
+
+# Example 2: Phase 2 specification issue
+{"timestamp": "2026-03-20T14:15:00Z", "stage": "C2", "action": "REQUEST_REVISION", "rationale": "Variable X1 has only 60% availability in source database", "source_dataset": "CSMAR", "required_action": "Find proxy or adjust sample filters", "actor": "C2_Auditor"}
+
+# Example 3: Phase 3 merge failure
+{"timestamp": "2026-03-22T09:00:00Z", "stage": "D2", "action": "AUDIT_RESULT", "result": "FAIL_MERGE_COVERAGE", "merge_coverage": 0.78, "threshold": 0.85, "recommendation": "Rollback to C1, reconsider variable definitions", "actor": "D2_Quality_Auditor"}
+
+# Example 4: Phase 4 robustness failure triggering rollback
+{"timestamp": "2026-03-25T16:45:00Z", "stage": "E2", "action": "TRIGGER_ROLLBACK", "rationale": "Coefficient insignificant after double clustering", "original_pvalue": 0.15, "double_cluster_pvalue": 0.18, "rollback_target": "design_lock", "actor": "E2_Adversarial_Auditor"}
+
+# Example 5: Escalation decision
+{"timestamp": "2026-03-26T11:20:00Z", "stage": "E1_E2_ESCALATION", "action": "ESCALATE_TO_USER", "issue": "Result sensitive to specification but theoretically justified", "options_presented": ["Accept with caveats", "Redesign identification"], "actor": "Agent_A"}
+
+# Schema:
+# {
+#   "timestamp": "ISO8601",
+#   "stage": "B1" | "B2" | "C1" | "C2" | "D1" | "D2" | "E1" | "E2" | "F1" | "F2",
+#   "action": "REJECT_*" | "REQUEST_REVISION" | "AUDIT_RESULT" | "TRIGGER_ROLLBACK" | "PASS_GATE" | "ESCALATE_TO_USER",
+#   "rationale": "string (required)",
+#   "actor": "string",
+#   "optional_fields": "... vary by action type"
+# }

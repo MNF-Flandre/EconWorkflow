@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}{{ relative_path }} | 研究实验室{% endblock %}
+
+{% block content %}
+<section class="panel">
+  <div class="panel-head">
+    <div>
+      <p class="eyebrow">项目文件</p>
+      <h1>{{ relative_path }}</h1>
+      <p class="panel-copy">这里直接预览项目中的说明、任务单和各轮产出。</p>
+    </div>
+    <div class="file-actions">
+      {% if relative_path.endswith('.md') or relative_path.endswith('.json') or relative_path.endswith('.toml') %}
+      <button type="button" id="edit-file-button" class="button-link">编辑文件</button>
+      {% endif %}
+      <a class="button-link button-link-secondary" href="{{ url_for('project_dashboard', slug=slug) }}">返回项目</a>
+    </div>
+  </div>
+
+  <!-- 文件内容预览（高亮显示） -->
+  <pre class="file-content" data-file-path="{{ relative_path }}">{{ content }}</pre>
+
+  <!-- Markdown 编辑器容器 -->
+  {% if relative_path.endswith('.md') or relative_path.endswith('.json') or relative_path.endswith('.toml') %}
+  <div id="markdown-editor">
+    <div id="editor-toolbar">
+      <button type="button" onclick="saveMarkdownFile()" class="save-btn">保存文件</button>
+      <button type="button" onclick="cancelMarkdownEdit()" class="cancel">取消编辑</button>
+    </div>
+    <div id="codemirror-instance"></div>
+  </div>
+  {% endif %}
+</section>
+
+<script src="{{ url_for('static', filename='editor-enhancements.js') }}"></script>
+{% endblock %}

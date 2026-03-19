@@ -1,0 +1,209 @@
+{% extends "base.html" %}
+
+{% block title %}项目研究 | 研究实验室{% endblock %}
+
+{% block content %}
+<section class="hero hero-home">
+  <div class="hero-main">
+    <p class="eyebrow">项目研究</p>
+    <h1>把一个题目从想法推进到成文</h1>
+    <p class="hero-copy">先定义研究问题，再沿着评审、决策、执行和成文整理的路径稳步推进。</p>
+    <div class="process-ribbon">
+      <span class="ribbon-item">题目与问题</span>
+      <span class="ribbon-item">博士生评审</span>
+      <span class="ribbon-item">PI 决策</span>
+      <span class="ribbon-item">硕士生执行</span>
+      <span class="ribbon-item">成文整理</span>
+    </div>
+    <div class="hero-actions">
+      <a class="button-link" href="#new-project">开始新研究</a>
+      <a class="button-link button-link-secondary" href="{{ url_for('process_settings') }}">进入流程设置</a>
+    </div>
+  </div>
+  <aside class="hero-side">
+    <div class="hero-card">
+      <p class="hero-label">当前项目</p>
+      <p class="hero-metric">{{ projects|length }}</p>
+      <p class="hero-submeta">每个项目都在这里积累说明、进展和结论。</p>
+    </div>
+    <div class="mini-note-card">
+      <p class="eyebrow">当前流程</p>
+      <h3 class="hero-card-title">默认研究推进方式</h3>
+      <p class="muted">当前会默认使用你在流程设置里选中的工作流创建新项目。</p>
+    </div>
+  </aside>
+</section>
+
+<section class="home-grid">
+  <article class="panel launch-panel" id="new-project">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">新建项目</p>
+        <h2>从一个清楚的问题开始</h2>
+        <p class="panel-copy">填完题目、研究问题和 PI 的初步想法，就可以直接生成一个新项目。</p>
+      </div>
+    </div>
+
+    <form method="post" action="{{ url_for('create_project_from_ui') }}" class="stack-form">
+      <label>
+        <span>项目标题</span>
+        <input type="text" name="title" placeholder="例如：中国公募基金窗饰与后续资金流">
+      </label>
+
+      <label>
+        <span>项目简称（可选）</span>
+        <input type="text" name="slug" placeholder="可留空，系统会自动生成">
+      </label>
+
+      <label>
+        <span>研究问题</span>
+        <textarea name="question" rows="4" placeholder="清楚写出这一轮想让实验室评估的研究问题。"></textarea>
+      </label>
+
+      <label>
+        <span>PI 的初步想法</span>
+        <textarea name="objective" rows="5" placeholder="写给成员：为什么这个题目值得看、最担心什么、希望优先判断什么。"></textarea>
+      </label>
+
+      <button type="submit">创建新项目</button>
+    </form>
+  </article>
+
+  <article class="panel settings-panel">
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">研究推进</p>
+        <h2>从选题到成文的总体节奏</h2>
+        <p class="panel-copy">流程设置决定推进方式，项目研究负责把每个题目真正往前推。</p>
+      </div>
+      <span class="pill">{{ stage_sections|length }} 个阶段</span>
+    </div>
+    <div class="section-stack">
+      {% for stage in stage_sections %}
+      <div class="section-card stage-brief-card">
+        <strong>{{ stage.label }}</strong>
+        <p>{{ stage.summary }}</p>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="card-actions">
+      <a class="button-link button-link-secondary" href="{{ url_for('process_settings') }}">调整流程设置</a>
+      <a class="button-link button-link-secondary" href="{{ url_for('people_settings') }}">查看人员配置</a>
+    </div>
+  </article>
+</section>
+
+{% for stage in stage_sections %}
+<section class="panel" id="stage-{{ stage.id }}">
+  <div class="panel-head">
+    <div>
+      <p class="eyebrow">阶段 {{ loop.index }}</p>
+      <h2>{{ stage.label }}</h2>
+      <p class="panel-copy">{{ stage.summary }}</p>
+    </div>
+    <span class="pill">{{ stage.count }} 个项目</span>
+  </div>
+
+  {% if stage.projects %}
+  <div class="project-grid">
+    {% for project in stage.projects %}
+    <article class="project-card">
+      <div class="project-topline">
+        <span class="pill">{{ stage.label }}</span>
+      </div>
+      <h3><a href="{{ url_for('project_dashboard', slug=project.slug) }}">{{ project.title }}</a></h3>
+      <p class="muted">{{ project.brief_excerpt }}</p>
+      <dl class="stats-grid">
+        <div>
+          <dt>参与角色</dt>
+          <dd>{{ project.active_roles }}</dd>
+        </div>
+        <div>
+          <dt>已有产出</dt>
+          <dd>{{ project.outputs }}</dd>
+        </div>
+        <div>
+          <dt>待办任务</dt>
+          <dd>{{ project.open_tickets }}</dd>
+        </div>
+        <div>
+          <dt>推进记录</dt>
+          <dd>{{ project.runs }}</dd>
+        </div>
+      </dl>
+      <div class="card-actions">
+        <a class="button-link" href="{{ url_for('project_dashboard', slug=project.slug) }}">进入项目</a>
+        <button
+          type="button"
+          class="button-link button-link-danger button-link-inline"
+          data-confirm-open
+          data-confirm-title="删除这个项目？"
+          data-confirm-text="删除后，这个项目的说明、任务和研究产出都会一起移除。"
+          data-confirm-submit="delete-project-{{ project.slug }}"
+          data-confirm-action-label="确认删除"
+        >
+          删除项目
+        </button>
+      </div>
+      <form id="delete-project-{{ project.slug }}" method="post" action="{{ url_for('delete_project_from_ui', slug=project.slug) }}"></form>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state compact-empty">
+    <p class="muted">当前没有项目停留在这一阶段。</p>
+  </div>
+  {% endif %}
+</section>
+{% endfor %}
+
+<section class="panel" id="project-list">
+  <div class="panel-head">
+    <div>
+      <p class="eyebrow">项目一览</p>
+      <h2>现有研究项目</h2>
+      <p class="panel-copy">每个项目都包含评审层、执行层、任务单和推进记录。</p>
+    </div>
+    <span class="pill">{{ projects|length }} 个项目</span>
+  </div>
+
+  {% if projects %}
+  <div class="project-grid">
+    {% for project in projects %}
+    <article class="project-card">
+      <div class="project-topline">
+        <span class="pill">{{ stage_labels.get(project.stage, project.stage) }}</span>
+      </div>
+      <h3><a href="{{ url_for('project_dashboard', slug=project.slug) }}">{{ project.title }}</a></h3>
+      <p class="muted">{{ project.brief_excerpt }}</p>
+      <dl class="stats-grid">
+        <div>
+          <dt>参与角色</dt>
+          <dd>{{ project.active_roles }}</dd>
+        </div>
+        <div>
+          <dt>已有产出</dt>
+          <dd>{{ project.outputs }}</dd>
+        </div>
+        <div>
+          <dt>待办任务</dt>
+          <dd>{{ project.open_tickets }}</dd>
+        </div>
+        <div>
+          <dt>推进记录</dt>
+          <dd>{{ project.runs }}</dd>
+        </div>
+      </dl>
+      <a class="button-link" href="{{ url_for('project_dashboard', slug=project.slug) }}">进入项目</a>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <p class="eyebrow">可以开始了</p>
+    <h3>当前还没有项目</h3>
+    <p class="muted">先用上方的“创建新项目”入口定义一个题目，然后再进入项目页安排博士生和硕士生。</p>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

@@ -1,0 +1,38 @@
+[workspace]
+name = "econ-research-workflow"
+default_language = "zh-CN"
+projects_dir = "projects"
+agents_dir = "agents"
+shared_notes_dir = "shared-notes"
+econ_os_version = "2.0"
+econ_os_schemas_dir = "shared-notes/.econ-os/schemas"
+econ_os_templates_dir = "shared-notes/.econ-os"
+
+[workflow]
+version = "econ-os-2.0"
+description = "5-Phase Automated Economics Research Pipeline"
+process_templates_file = "shared-notes/.econ-os/process_templates.json"
+agent_roles_file = "shared-notes/.econ-os/AGENT_ROLES.md"
+active_workflow = "econ-os-2.0"
+
+[phases]
+phase_1 = "Discovery - Ideation & Literature Alignment"
+phase_2 = "Mapping & Lock - Specification Freeze"
+phase_3 = "Data Ops - Data Engineering & Quality Audit"
+phase_4 = "Econometrics - Execution & Adversarial Testing"
+phase_5 = "Synthesis - Economics Interpretation & Audit Trail"
+
+[automation]
+decision_log_enabled = true
+auto_rollback_enabled = true
+scorecard_validation = "mandatory"
+decision_log_file = ".econ-os/decision_log.jsonl"
+
+[llm]
+mode = "prompt-only"
+base_url = "https://maas.tatucloud.com/v1"
+model = "mimo-v2-flash"
+api_key_env = "GATEWAY_API_KEY"
+temperature = 0.2
+max_tokens = 4000
+

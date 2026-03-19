@@ -1,0 +1,64 @@
+# Default project configuration for Econ-OS 2.0
+# Copy and customize this file for each new research project
+
+project_slug: "template-project"
+research_title: "[Research Title Here]"
+research_question: "[Main research question]"
+
+pi_name: "Principal Investigator Name"
+created_at: "2026-03-19"
+created_by: "agent_a"
+
+# Phase Timeline - Customize based on project scope
+phase_timeline:
+  phase_1_discovery:
+    planned_start: "YYYY-MM-DD"
+    planned_end: "YYYY-MM-DD"
+    responsible_agents: ["B1_explorer", "B2_challenger"]
+  
+  phase_2_lock:
+    planned_start: "YYYY-MM-DD"
+    planned_end: "YYYY-MM-DD"
+    responsible_agents: ["C1_designer", "C2_auditor"]
+    freeze_point: "design_lock.yaml"
+  
+  phase_3_data:
+    planned_start: "YYYY-MM-DD"
+    planned_end: "YYYY-MM-DD"
+    responsible_agents: ["D1_engineer", "D2_qa"]
+  
+  phase_4_estimation:
+    planned_start: "YYYY-MM-DD"
+    planned_end: "YYYY-MM-DD"
+    responsible_agents: ["E1_runner", "E2_auditor"]
+  
+  phase_5_synthesis:
+    planned_start: "YYYY-MM-DD"
+    planned_end: "YYYY-MM-DD"
+    responsible_agents: ["F1_narrator", "F2_reviewer"]
+
+# Rollback thresholds - DO NOT MODIFY during project
+rollback_thresholds:
+  data_availability_min: 0.40
+  merge_coverage_min: 0.85
+  sample_loss_max_pct: 0.30
+  robustness_pass_rate_min: 0.50
+
+# Contact information
+contacts:
+  pi_email: ""
+  pi_slack: ""
+  agent_coordinator: "agent_a@system"
+  escalation_contact: ""
+
+# Data sources to be used
+data_sources:
+  - name: ""
+    provider: ""
+    access_status: "pending|confirmed|unavailable"
+    coverage: "YYYY-MM to YYYY-MM"
+
+# Settings
+audit_trail_enabled: true
+auto_rollback_enabled: true
+require_user_approval_on_rollback: false
