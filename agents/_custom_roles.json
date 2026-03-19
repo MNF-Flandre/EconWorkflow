@@ -1,0 +1,11 @@
+{
+  "test-role": {
+    "name": "Test Role",
+    "layer": "ma",
+    "deliverable": "outputs/test-role.md",
+    "default_task": "Test task",
+    "context_files": [
+      "brief.md"
+    ]
+  }
+}
