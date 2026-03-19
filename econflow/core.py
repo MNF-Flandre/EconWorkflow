@@ -310,7 +310,7 @@ def _serialize_role_spec(spec: RoleSpec) -> dict[str, object]:
 def _deserialize_role_spec(payload: dict[str, object]) -> RoleSpec:
     return RoleSpec(
         name=str(payload.get("name", "")).strip(),
-        layer=str(payload.get("layer", "ma")).strip() or "ma",
+        layer=str(payload.get("layer", "econ-os")).strip() or "econ-os",
         deliverable=str(payload.get("deliverable", "")).strip(),
         default_task=str(payload.get("default_task", "")).strip(),
         context_files=tuple(str(item).strip() for item in payload.get("context_files", []) if str(item).strip()),
@@ -484,8 +484,8 @@ def create_custom_role(
     if normalized_role_id in role_specs:
         raise RuntimeError(f"角色已存在: {normalized_role_id}")
     normalized_layer = layer.strip().lower()
-    if normalized_layer not in {"phd", "ma"}:
-        raise RuntimeError("角色层级必须是 phd 或 ma。")
+    if normalized_layer not in {"phd", "ma", "econ-os"}:
+        raise RuntimeError("角色层级必须是 phd、ma 或 econ-os。")
     deliverable_name = f"{normalized_role_id}.md"
     spec = RoleSpec(
         name=name.strip() or normalized_role_id,

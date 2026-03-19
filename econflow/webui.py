@@ -210,7 +210,8 @@ def _load_ui_state(project_dir: Path) -> dict[str, Any]:
     state = _read_json(project_dir / UI_STATE_FILE, default={})
     active_roles = [role_id for role_id in state.get("active_roles", []) if role_id in role_specs]
     if not active_roles:
-        active_roles = list(role_specs.keys())
+        econ_os_roles = [role_id for role_id, spec in role_specs.items() if spec.layer == "econ-os"]
+        active_roles = econ_os_roles or list(role_specs.keys())
     decisions = state.get("pi_decisions", [])
     if not isinstance(decisions, list):
         decisions = []
@@ -585,7 +586,11 @@ def _render_role_card(profile: dict[str, Any]) -> str:
     responsibility_lines = "\n".join(f"{index}. {item}" for index, item in enumerate(responsibilities, start=1))
     skill_lines = "\n".join(f"- {item}" for item in skills)
     report_lines = "\n".join(f"- {item}" for item in report_style)
-    layer_label = "博士生评审层" if profile.get("layer") == "phd" else "硕士生执行层"
+    layer_label = {
+        "phd": "博士生评审层",
+        "ma": "硕士生执行层",
+        "econ-os": "Econ-OS 2.0 研究角色",
+    }.get(profile.get("layer"), str(profile.get("layer") or ""))
     return (
         f"# {profile['name']}\n\n"
         f"{profile['mission'].strip() or '你是这个研究流程中的成员。'}\n\n"
@@ -780,7 +785,7 @@ def _save_agent_profile_ui(
 
 
 def _load_people_groups(root: Path) -> dict[str, list[dict[str, Any]]]:
-    grouped: dict[str, list[dict[str, Any]]] = {"phd": [], "ma": [], "econ-os": []}
+    grouped: dict[str, list[dict[str, Any]]] = {"econ-os": []}
     for role_id, spec in load_role_specs(root).items():
         if spec.layer not in grouped:
             grouped[spec.layer] = []
@@ -933,7 +938,7 @@ def create_app(root: Path | None = None) -> Flask:
     def create_people_profile() -> Any:
         name = request.form.get("name", "").strip()
         role_id = request.form.get("role_id", "").strip()
-        layer = request.form.get("layer", "ma").strip().lower() or "ma"
+        layer = request.form.get("layer", "econ-os").strip().lower() or "econ-os"
         display_function = _split_lines(request.form.get("display_function", ""))
         display_ability = _split_lines(request.form.get("display_ability", ""))
         mission = request.form.get("mission", "").strip()
