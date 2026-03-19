@@ -111,11 +111,11 @@ Phase 5: Synthesis (F1+F2) → final_report.md + decision_log.jsonl
 
 | 角色 | 职能 | 建议人选 |
 |------|------|---------|
-| **B2 Challenger** | 红队审查文献 | Senior RA |
-| **C1 Designer** | 规格设计 | PhD助理或Senior RA |
-| **D2 QA Auditor** | 数据质量审计 | 有统计背景的RA |
-| **E2 Adversarial** | 压力测试 | 资深PhD或Postdoc |
-| **F2 Journal Reviewer** | 期刊模拟审稿 | 发表经验丰富的研究者 |
+| **B2 Challenger** | 红队审查文献 | 具备系统文献经验的研究者 |
+| **C1 Designer** | 规格设计 | 有设计/识别经验的研究者 |
+| **D2 QA Auditor** | 数据质量审计 | 具备统计与数据审计背景 |
+| **E2 Adversarial** | 压力测试 | 善于稳健性压力测试的研究者 |
+| **F2 Journal Reviewer** | 期刊模拟审稿 | 有发表经验的评审人 |
 
 ---
 
@@ -125,7 +125,7 @@ Phase 5: Synthesis (F1+F2) → final_report.md + decision_log.jsonl
 - ✅ `process_state.json` → econ-os-5-phase-pipeline
 - ✅ `shared-notes/.econ-os/` → 全套schemas + process templates
 - ✅ `projects/.econ-os-template/` → 新项目模板
-- ✅ 兼容所有现有agents (ma_literature, ma_data, ma_cleaning, ma_regression, phd_story)
+- ✅ 当前仅启用 Econ-OS 2.0 角色集
 
 ---
 

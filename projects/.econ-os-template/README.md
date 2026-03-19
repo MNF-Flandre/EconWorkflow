@@ -57,28 +57,28 @@ phase_timeline:
   phase_1_discovery:
     start_date: "2026-03-19"
     end_date: "2026-04-09"
-    responsible_agents: ["B1_ma_literature", "B2_challenger_ta"]
+    responsible_agents: ["b1_explorer", "b2_challenger"]
   
   phase_2_lock:
     start_date: "2026-04-10"
     end_date: "2026-04-24"
-    responsible_agents: ["C1_designer_phd", "C2_ma_data"]
+    responsible_agents: ["c1_designer", "c2_data_auditor"]
     freeze_point: "design_lock.yaml"
   
   phase_3_data:
     start_date: "2026-04-25"
     end_date: "2026-05-23"
-    responsible_agents: ["D1_ma_cleaning", "D2_qa_auditor"]
+    responsible_agents: ["d1_engineer", "d2_qa_auditor"]
   
   phase_4_estimation:
     start_date: "2026-05-24"
     end_date: "2026-06-14"
-    responsible_agents: ["E1_ma_regression", "E2_adversarial_phd"]
+    responsible_agents: ["e1_runner", "e2_adversarial_auditor"]
   
   phase_5_synthesis:
     start_date: "2026-06-15"
     end_date: "2026-06-29"
-    responsible_agents: ["F1_phd_story", "F2_journal_reviewer"]
+    responsible_agents: ["f1_narrator", "f2_journal_reviewer"]
 
 rollback_thresholds:
   data_availability_min: 0.40        # Phase 2-3
@@ -88,8 +88,8 @@ rollback_thresholds:
 
 contact_info:
   pi_email: "zhangsan@univ.ac.cn"
-  agent_b1: "ma_literature@agent.local"
-  agent_c1: "phd_designer@agent.local"
+  agent_b1: "b1_explorer@agent.local"
+  agent_c1: "c1_designer@agent.local"
   escalation_email: "research-chair@univ.ac.cn"
 
 audit_trail_enabled: true

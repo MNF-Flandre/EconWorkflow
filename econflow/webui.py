@@ -92,9 +92,6 @@ DECISION_OPTIONS = (
 STAGE_LABELS = {stage["id"]: stage["label"] for stage in RESEARCH_STAGES}
 PIPELINE_LABELS = {
     "econ-os-2.0": "Econ-OS 2.0：5阶段自动化经济学研究",
-    "committee-review": "博士生委员会评审",
-    "ra-sprint": "硕士生执行推进",
-    "faculty-lab": "全实验室联动",
 }
 AGENT_SKILL_DEFAULTS: dict[str, tuple[str, ...]] = {
     "b1_explorer": ("系统文献搜索", "综合相关研究", "结构化文献矩阵"),
@@ -107,18 +104,8 @@ AGENT_SKILL_DEFAULTS: dict[str, tuple[str, ...]] = {
     "e2_adversarial_auditor": ("稳健性压力测试", "异常值检验", "子样本分析"),
     "f1_narrator": ("系数经济学解释", "假设结果对比", "报告撰写"),
     "f2_journal_reviewer": ("期刊审稿模拟", "内生性检查", "学术质量评估"),
-    "phd_feasibility": ("文献定位", "边际贡献判断", "投稿口径设计"),
-    "phd_data": ("数据可得性评估", "识别策略审查", "变量口径设计"),
-    "phd_story": ("故事线搭建", "审稿风险预判", "执行包拆解"),
-    "ma_literature": ("文献检索", "文献矩阵整理", "相关研究归类"),
-    "ma_data": ("数据清单梳理", "字段映射", "抓取与申请路径记录"),
-    "ma_cleaning": ("数据清洗", "合并规则设计", "变量构造记录"),
-    "ma_regression": ("回归执行", "表图规划", "稳健性方案整理"),
-    "ma_replication": ("复核检查", "日志记录", "交付验收"),
 }
 REPORT_STYLE_DEFAULTS = {
-    "phd": ("先给判断，再给理由。", "把风险和不确定点单独列清楚。", "给 PI 一个明确的下一步建议。"),
-    "ma": ("先说明完成了什么，再说明还缺什么。", "所有输入材料和输出结果都要能追溯。", "对容易出错的步骤单独提醒。"),
     "econ-os": ("按照规格执行。", "记录所有关键决策点和数据质量检查。", "发现问题立即标记，不掩盖。"),
 }
 
@@ -173,6 +160,7 @@ def _truncate(text: str, limit: int = 240) -> str:
 
 
 def _brief_preview(text: str) -> str:
+    """Return the first non-heading line as brief preview, stripping markdown."""
     for line in text.splitlines():
         cleaned = line.strip()
         if cleaned and not cleaned.startswith("#"):
@@ -613,8 +601,6 @@ def _render_role_card(profile: dict[str, Any]) -> str:
     skill_lines = "\n".join(f"- {item}" for item in skills)
     report_lines = "\n".join(f"- {item}" for item in report_style)
     layer_label = {
-        "phd": "博士生评审层",
-        "ma": "硕士生执行层",
         "econ-os": "Econ-OS 2.0 研究角色",
     }.get(profile.get("layer"), str(profile.get("layer") or ""))
     return (
@@ -1229,7 +1215,7 @@ def create_app(root: Path | None = None) -> Flask:
 
     @app.post("/projects/<slug>/run-pipeline")
     def trigger_pipeline(slug: str) -> Any:
-        preset = request.form.get("preset", "committee-review").strip()
+        preset = request.form.get("preset", "econ-os-2.0").strip()
         goal = request.form.get("goal", "").strip()
         execute = request.form.get("execute") == "on"
         try:

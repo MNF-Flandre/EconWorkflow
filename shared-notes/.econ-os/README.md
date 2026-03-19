@@ -273,7 +273,7 @@ Outcome: Design A + C2 reconsider fixed effects / identification strategy
 ## 🚀 使用流程
 
 ### 新项目启动
-1. **Run feasibility check** (phd_feasibility) → if PASS:
+1. **Run feasibility check**（Econ-OS 2.0 内置流程）→ if PASS:
 2. **Initialize .econ-os/** directory → copy from `.econ-os-template/`
 3. **Configure project_config.yaml** with PI, timeline, agents
 4. **Begin Phase 1:** B1 starts literature search → B2 independent review
