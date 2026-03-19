@@ -93,7 +93,9 @@
   </article>
 </section>
 
+{% if projects %}
 {% for stage in stage_sections %}
+{% if stage.projects %}
 <section class="panel" id="stage-{{ stage.id }}">
   <div class="panel-head">
     <div>
@@ -104,7 +106,6 @@
     <span class="pill">{{ stage.count }} 个项目</span>
   </div>
 
-  {% if stage.projects %}
   <div class="project-grid">
     {% for project in stage.projects %}
     <article class="project-card">
@@ -149,61 +150,16 @@
     </article>
     {% endfor %}
   </div>
-  {% else %}
-  <div class="empty-state compact-empty">
-    <p class="muted">当前没有项目停留在这一阶段。</p>
-  </div>
-  {% endif %}
 </section>
+{% endif %}
 {% endfor %}
-
-<section class="panel" id="project-list">
-  <div class="panel-head">
-    <div>
-      <p class="eyebrow">项目一览</p>
-      <h2>现有研究项目</h2>
-      <p class="panel-copy">每个项目都包含评审层、执行层、任务单和推进记录。</p>
-    </div>
-    <span class="pill">{{ projects|length }} 个项目</span>
-  </div>
-
-  {% if projects %}
-  <div class="project-grid">
-    {% for project in projects %}
-    <article class="project-card">
-      <div class="project-topline">
-        <span class="pill">{{ stage_labels.get(project.stage, project.stage) }}</span>
-      </div>
-      <h3><a href="{{ url_for('project_dashboard', slug=project.slug) }}">{{ project.title }}</a></h3>
-      <p class="muted">{{ project.brief_excerpt }}</p>
-      <dl class="stats-grid">
-        <div>
-          <dt>参与角色</dt>
-          <dd>{{ project.active_roles }}</dd>
-        </div>
-        <div>
-          <dt>已有产出</dt>
-          <dd>{{ project.outputs }}</dd>
-        </div>
-        <div>
-          <dt>待办任务</dt>
-          <dd>{{ project.open_tickets }}</dd>
-        </div>
-        <div>
-          <dt>推进记录</dt>
-          <dd>{{ project.runs }}</dd>
-        </div>
-      </dl>
-      <a class="button-link" href="{{ url_for('project_dashboard', slug=project.slug) }}">进入项目</a>
-    </article>
-    {% endfor %}
-  </div>
-  {% else %}
+{% else %}
+<section class="panel">
   <div class="empty-state">
     <p class="eyebrow">可以开始了</p>
     <h3>当前还没有项目</h3>
-    <p class="muted">先用上方的“创建新项目”入口定义一个题目，然后再进入项目页安排博士生和硕士生。</p>
+    <p class="muted">用上方的"开始新研究"入口创建第一个研究项目，系统会自动按照 Econ-OS 2.0 五阶段流程追踪进展。</p>
   </div>
-  {% endif %}
 </section>
+{% endif %}
 {% endblock %}
