@@ -41,49 +41,44 @@ UI_STATE_FILE = "ui_state.json"
 AGENT_PROFILE_FILE = "profile.json"
 AGENT_CARD_FILE = "card.md"
 AGENT_ROLE_FILE = "role.md"
-DEFAULT_STAGE = "topic-review"
+DEFAULT_STAGE = "discovery"
 PROCESS_STEP_SUGGESTIONS: tuple[dict[str, str], ...] = (
-    {"label": "博士生评审", "summary": "先判断题目、数据和故事线是否站得住。"},
-    {"label": "PI 决策", "summary": "决定继续推进、调整方向还是暂时止损。"},
+    {"label": "第一阶段：创意发现", "summary": "检索文献、提炼研究缺口与假设，经挑战者独立审核，确认选题不重复且有支撑。"},
+    {"label": "第二阶段：研究设计与锁定", "summary": "将假设转化为变量定义、样本边界与实证规格，经数据审计员确认可得性后正式锁定。"},
+    {"label": "第三阶段：数据工程", "summary": "按锁定规格清洗合并数据，经质量审计检查样本流失与完整性，达标后方可推进。"},
+    {"label": "第四阶段：实证执行", "summary": "按锁定规格跑基准回归，再经全套稳健性压力测试，结果通过方可进入最终阶段。"},
+    {"label": "第五阶段：经济解释", "summary": "解释系数经济含义，模拟期刊审稿人批判性评审，产出最终报告与审计日志。"},
+    {"label": "PI 决策", "summary": "审阅评审意见，决定继续推进、调整方向还是暂停课题。"},
     {"label": "文献补充", "summary": "补齐文献位置、边际贡献和相关机制。"},
     {"label": "数据盘点", "summary": "明确数据来源、样本范围和可得性。"},
-    {"label": "变量构造", "summary": "统一口径并写清变量定义。"},
-    {"label": "清洗合并", "summary": "处理原始数据并形成分析样本。"},
-    {"label": "基准回归", "summary": "推进主结果并检查表图输出。"},
-    {"label": "稳健性检验", "summary": "补稳健性、安慰剂和异质性。"},
-    {"label": "复核交付", "summary": "检查脚本、日志、表图和交付包。"},
+    {"label": "稳健性检验", "summary": "补稳健性、安慰剂检验和异质性分析。"},
     {"label": "成文整理", "summary": "把图表、叙述和附录整理成草稿。"},
 )
 RESEARCH_STAGES = (
     {
-        "id": "topic-review",
-        "label": "选题评估",
-        "summary": "PI 抛出题目后，先由博士生判断边际贡献、文献位置和主要风险。",
+        "id": "discovery",
+        "label": "第一阶段：创意发现",
+        "summary": "检索文献、提炼研究缺口与假设，经挑战者独立审核，确认选题不重复且有支撑。",
     },
     {
-        "id": "pi-decision",
-        "label": "PI 决策",
-        "summary": "PI 审阅博士生意见，决定继续推进、退回重做还是暂停课题。",
+        "id": "design-lock",
+        "label": "第二阶段：研究设计与锁定",
+        "summary": "将假设转化为变量定义与实证规格，经数据审计员确认可得性后正式锁定，后续不可更改。",
     },
     {
-        "id": "task-decomposition",
-        "label": "任务拆解",
-        "summary": "把可行的题目拆成文献、数据、清洗和回归等执行包，分给不同成员。",
+        "id": "data-ops",
+        "label": "第三阶段：数据工程",
+        "summary": "按锁定规格清洗合并数据，经质量审计检查样本流失与完整性，达标后方可进入实证阶段。",
     },
     {
-        "id": "ra-execution",
-        "label": "执行推进",
-        "summary": "硕士生按任务单落实文献矩阵、数据清单、清洗日志和回归方案。",
+        "id": "econometrics",
+        "label": "第四阶段：实证执行",
+        "summary": "按锁定规格跑基准回归，再经全套稳健性压力测试，结果通过方可进入最终阶段。",
     },
     {
         "id": "synthesis",
-        "label": "汇总结论",
-        "summary": "收拢结果、补齐风险点，形成可以向 PI 汇报的研究判断。",
-    },
-    {
-        "id": "paper-drafting",
-        "label": "成文整理",
-        "summary": "把图表、附录、讲故事顺序和初稿组织成可讨论的 paper draft。",
+        "label": "第五阶段：经济解释",
+        "summary": "解释系数经济含义，模拟顶级期刊审稿人批判性评审，产出最终报告与全流程审计日志。",
     },
 )
 STAGE_OPTIONS = tuple(stage["id"] for stage in RESEARCH_STAGES)
@@ -92,7 +87,7 @@ DECISION_OPTIONS = (
     "退回重做",
     "暂停课题",
     "要求复议",
-    "交给博士生三号拆任务",
+    "调整方向后推进",
 )
 STAGE_LABELS = {stage["id"]: stage["label"] for stage in RESEARCH_STAGES}
 PIPELINE_LABELS = {

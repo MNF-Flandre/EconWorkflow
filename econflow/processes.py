@@ -11,36 +11,36 @@ PROCESS_TEMPLATES_FILE = "process_templates.json"
 PROCESS_STATE_FILE = "process_state.json"
 
 DEFAULT_PROCESS_TEMPLATES: dict[str, dict[str, Any]] = {
-    "standard-research": {
-        "id": "standard-research",
-        "name": "标准研究流程",
-        "summary": "适合从选题评估一路推进到成文整理的完整流程。",
+    "econ-os-2.0": {
+        "id": "econ-os-2.0",
+        "name": "Econ-OS 2.0 五阶段研究流程",
+        "summary": "从创意发现到经济解释的完整研究流程，每个阶段都有执行者与审计员双重校验，设计一旦锁定即不可随意更改。",
         "is_builtin": True,
         "steps": [
             {
-                "id": "phd-review",
-                "label": "博士生评审",
-                "summary": "先判断题目、数据和故事线是否站得住。",
+                "id": "discovery",
+                "label": "第一阶段：创意发现",
+                "summary": "检索文献、提炼研究缺口与假设，经挑战者独立审核，确认选题不重复且有支撑。",
             },
             {
-                "id": "pi-decision",
-                "label": "PI 决策",
-                "summary": "决定继续推进、收窄范围还是暂时止损。",
+                "id": "design-lock",
+                "label": "第二阶段：研究设计与锁定",
+                "summary": "将假设转化为变量定义、样本边界与实证规格，经数据审计员确认可得性后正式锁定，后续不可更改。",
             },
             {
-                "id": "literature-data",
-                "label": "文献与数据准备",
-                "summary": "补文献、盘数据、明确样本与变量口径。",
+                "id": "data-ops",
+                "label": "第三阶段：数据工程",
+                "summary": "按锁定规格清洗合并数据，经质量审计检查样本流失与完整性，达标后方可进入实证阶段。",
             },
             {
-                "id": "cleaning-regression",
-                "label": "清洗与回归执行",
-                "summary": "清洗样本、构造变量并推进基准结果。",
+                "id": "econometrics",
+                "label": "第四阶段：实证执行",
+                "summary": "按锁定规格跑基准回归，再经全套稳健性压力测试（聚类、安慰剂、异常值、子样本），结果通过方可进入最终阶段。",
             },
             {
-                "id": "replication-drafting",
-                "label": "复核与成文整理",
-                "summary": "复核结果、整理表图并形成成文提纲。",
+                "id": "synthesis",
+                "label": "第五阶段：经济解释",
+                "summary": "解释系数经济含义，模拟顶级期刊审稿人进行批判性评审，产出最终报告与全流程审计日志。",
             },
         ],
     },
