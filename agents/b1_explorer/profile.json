@@ -1,0 +1,18 @@
+{
+  "display_function": [
+    "Test function"
+  ],
+  "display_ability": [
+    "Test ability"
+  ],
+  "mission": "Test mission",
+  "responsibilities": [
+    "Test responsibilities"
+  ],
+  "skills": [
+    "Test skills"
+  ],
+  "report_style": [
+    "Test style"
+  ]
+}

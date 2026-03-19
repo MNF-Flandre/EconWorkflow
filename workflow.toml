@@ -29,10 +29,10 @@ scorecard_validation = "mandatory"
 decision_log_file = ".econ-os/decision_log.jsonl"
 
 [llm]
-mode = "prompt-only"
-base_url = "https://maas.tatucloud.com/v1"
-model = "mimo-v2-flash"
-api_key_env = "GATEWAY_API_KEY"
+mode = "openai-compatible"
+base_url = "https://api.openai.com/v1"
+model = "gpt-4"
+api_key_env = "OPENAI_API_KEY"
 temperature = 0.2
 max_tokens = 4000
 
