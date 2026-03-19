@@ -172,6 +172,14 @@ def _truncate(text: str, limit: int = 240) -> str:
     return normalized[: limit - 1].rstrip() + "…"
 
 
+def _brief_preview(text: str) -> str:
+    for line in text.splitlines():
+        cleaned = line.strip()
+        if cleaned and not cleaned.startswith("#"):
+            return _strip_markdown(cleaned)
+    return _truncate(text, 260)
+
+
 def _extract_sections(markdown_text: str, limit: int = 3) -> list[dict[str, str]]:
     text = markdown_text.replace("\r\n", "\n").strip()
     if not text:
@@ -229,12 +237,28 @@ def _load_ui_state(project_dir: Path) -> dict[str, Any]:
     raw_assignments = state.get("process_assignments", {})
     if not isinstance(raw_assignments, dict):
         raw_assignments = {}
+
+    def _recommend_roles(process_id: str, step_id: str) -> list[str]:
+        if process_id != "econ-os-2.0":
+            return []
+        econ_os_roles = tuple(PIPELINES["econ-os-2.0"])
+        ordered_steps = [str(step.get("id", "")).strip() for step in process_template.get("steps", [])]
+        try:
+            step_index = ordered_steps.index(step_id)
+        except ValueError:
+            return []
+        start = step_index * 2
+        return [role_id for role_id in econ_os_roles[start : start + 2] if role_id in role_specs]
+
     process_assignments: dict[str, list[str]] = {}
     for step_id in step_ids:
         assigned_roles = raw_assignments.get(step_id, [])
         if not isinstance(assigned_roles, list):
             assigned_roles = []
-        process_assignments[step_id] = [role_id for role_id in assigned_roles if role_id in role_specs]
+        clean_roles = [role_id for role_id in assigned_roles if role_id in role_specs]
+        if not clean_roles:
+            clean_roles = _recommend_roles(process_id, step_id)
+        process_assignments[step_id] = clean_roles
     return {
         "active_roles": active_roles,
         "stage": stage,
@@ -264,8 +288,10 @@ def _project_metrics(project_dir: Path) -> dict[str, int | str]:
 
 
 def _load_project_cards(project_dir: Path, active_roles: list[str]) -> dict[str, list[dict[str, Any]]]:
-    grouped: dict[str, list[dict[str, Any]]] = {"phd": [], "ma": [], "econ-os": []}
+    grouped: dict[str, list[dict[str, Any]]] = {"econ-os": []}
     for role_id, spec in load_role_specs(project_dir.parent.parent).items():
+        if spec.layer != "econ-os":
+            continue
         deliverable_path = project_dir / spec.deliverable
         deliverable_text = _read_text(deliverable_path)
         latest_run = _latest_run_for_role(project_dir, role_id)
@@ -379,7 +405,7 @@ def _workspace_projects(root: Path) -> list[dict[str, Any]]:
             {
                 "slug": project_dir.name,
                 "title": _project_title(project_dir),
-                "brief_excerpt": _truncate(_read_text(project_dir / "brief.md"), 260),
+                "brief_excerpt": _brief_preview(_read_text(project_dir / "brief.md")),
                 "stage": state["stage"],
                 "process_name": process_template["name"],
                 "process_step": state["process_step"],
@@ -787,6 +813,8 @@ def _save_agent_profile_ui(
 def _load_people_groups(root: Path) -> dict[str, list[dict[str, Any]]]:
     grouped: dict[str, list[dict[str, Any]]] = {"econ-os": []}
     for role_id, spec in load_role_specs(root).items():
+        if spec.layer != "econ-os":
+            continue
         if spec.layer not in grouped:
             grouped[spec.layer] = []
         grouped[spec.layer].append(_load_agent_profile_ui(root, role_id))
@@ -1090,7 +1118,7 @@ def create_app(root: Path | None = None) -> Flask:
             "project.html",
             slug=slug,
             title=_project_title(project_dir),
-            brief_text=_read_text(project_dir / "brief.md"),
+            brief_text=_brief_preview(_read_text(project_dir / "brief.md")),
             grouped_cards=grouped_cards,
             econ_os_phases=econ_os_phases,
             tickets=_load_tickets(project_dir),

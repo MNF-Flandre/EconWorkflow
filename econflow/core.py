@@ -436,13 +436,7 @@ def create_project(root: Path, title: str, slug: str | None = None, question: st
             f"""\
             # {title}
 
-            ## PI Idea
-
-            {objective.strip() or '待补充'}
-
-            ## Research Question
-
-            {question.strip() or '待补充'}
+            {objective.strip() or question.strip() or '待补充项目简介'}
             """
         ),
         "context/research_question.md": f"# Research Question\n\n{question.strip() or '待补充'}\n",

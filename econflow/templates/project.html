@@ -92,7 +92,7 @@
         <fieldset>
           <legend>本轮参与成员</legend>
           <div class="checkbox-grid">
-            {% for role_id, spec in role_specs.items() %}
+            {% for role_id, spec in role_specs.items() if spec.layer == 'econ-os' %}
             <label class="check-card">
               <input type="checkbox" name="active_roles" value="{{ role_id }}" {% if role_id in state.active_roles %}checked{% endif %}>
               <span>{{ spec.name }}</span>
@@ -211,7 +211,7 @@
               <fieldset class="process-checkbox-grid">
                 <legend>负责成员</legend>
                 <div class="checkbox-grid">
-                  {% for role_id, spec in role_specs.items() %}
+                  {% for role_id, spec in role_specs.items() if spec.layer == 'econ-os' %}
                   <label class="check-card">
                     <input
                       type="checkbox"
@@ -420,7 +420,7 @@
         <label>
           <span>分配给谁</span>
           <select name="role_id">
-            {% for role_id, spec in role_specs.items() %}
+            {% for role_id, spec in role_specs.items() if spec.layer == 'econ-os' %}
             <option value="{{ role_id }}">{{ spec.name }}</option>
             {% endfor %}
           </select>
