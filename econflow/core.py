@@ -21,7 +21,7 @@ DEFAULT_CONFIG = textwrap.dedent(
     shared_notes_dir = "shared-notes"
 
     [llm]
-    # 默认不调模型；如需执行推理，将 mode 改为 "openai-compatible"，并确保已配置对应的 API 密钥
+    # 默认不调模型； 如需执行推理，将 mode 改为 "openai-compatible"，并确保已配置对应的 API 密钥
     mode = "prompt-only"
     base_url = "https://api.openai.com/v1"
     model = "gpt-4"
