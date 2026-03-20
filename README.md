@@ -78,4 +78,4 @@ temperature = 0.2
 max_tokens = 4000
 ```
 
-然后加 `--execute` 即可。
+记得在环境变量里写入 `OPENAI_API_KEY`，然后加 `--execute` 即可。
