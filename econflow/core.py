@@ -20,14 +20,14 @@ DEFAULT_CONFIG = textwrap.dedent(
     agents_dir = "agents"
     shared_notes_dir = "shared-notes"
 
-    [llm]
-    mode = "prompt-only"
-    base_url = "http://localhost:1234/v1"
-    model = "your-local-model"
-    api_key_env = "OPENAI_API_KEY"
-    temperature = 0.2
-    max_tokens = 4000
-    """
+[llm]
+mode = "prompt-only"
+base_url = "https://api.openai.com/v1"
+model = "gpt-4"
+api_key_env = "OPENAI_API_KEY"
+temperature = 0.2
+max_tokens = 4000
+"""
 )
 
 
@@ -280,8 +280,8 @@ def load_config(root: Path) -> WorkspaceConfig:
     llm = data.get("llm") or {}
     llm_config = LLMConfig(
         mode=str(llm.get("mode", "prompt-only")),
-        base_url=str(llm.get("base_url", "http://localhost:1234/v1")),
-        model=str(llm.get("model", "your-local-model")),
+        base_url=str(llm.get("base_url", "https://api.openai.com/v1")),
+        model=str(llm.get("model", "gpt-4")),
         api_key_env=str(llm.get("api_key_env", "OPENAI_API_KEY")),
         temperature=float(llm.get("temperature", 0.2)),
         max_tokens=int(llm.get("max_tokens", 4000)),

@@ -71,8 +71,8 @@ python -m econflow delegate --project min-wage-youth-employment --role b1_explor
 ```toml
 [llm]
 mode = "openai-compatible"
-base_url = "http://localhost:1234/v1"
-model = "your-local-model"
+base_url = "https://api.openai.com/v1"
+model = "gpt-4"
 api_key_env = "OPENAI_API_KEY"
 temperature = 0.2
 max_tokens = 4000
