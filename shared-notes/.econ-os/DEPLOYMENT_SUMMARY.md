@@ -2,7 +2,7 @@
 ## econ-research-workflow 工作流升级完成
 
 **完成日期:** 2026-03-19  
-**系统版本:** 1.0  
+**系统版本:** 2.0  
 **状态:** ✅ READY FOR DEPLOYMENT  
 
 ---

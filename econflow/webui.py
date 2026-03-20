@@ -92,9 +92,6 @@ DECISION_OPTIONS = (
 STAGE_LABELS = {stage["id"]: stage["label"] for stage in RESEARCH_STAGES}
 PIPELINE_LABELS = {
     "econ-os-2.0": "Econ-OS 2.0：5阶段自动化经济学研究",
-    "committee-review": "博士生委员会评审",
-    "ra-sprint": "硕士生执行推进",
-    "faculty-lab": "全实验室联动",
 }
 AGENT_SKILL_DEFAULTS: dict[str, tuple[str, ...]] = {
     "b1_explorer": ("系统文献搜索", "综合相关研究", "结构化文献矩阵"),
@@ -107,18 +104,8 @@ AGENT_SKILL_DEFAULTS: dict[str, tuple[str, ...]] = {
     "e2_adversarial_auditor": ("稳健性压力测试", "异常值检验", "子样本分析"),
     "f1_narrator": ("系数经济学解释", "假设结果对比", "报告撰写"),
     "f2_journal_reviewer": ("期刊审稿模拟", "内生性检查", "学术质量评估"),
-    "phd_feasibility": ("文献定位", "边际贡献判断", "投稿口径设计"),
-    "phd_data": ("数据可得性评估", "识别策略审查", "变量口径设计"),
-    "phd_story": ("故事线搭建", "审稿风险预判", "执行包拆解"),
-    "ma_literature": ("文献检索", "文献矩阵整理", "相关研究归类"),
-    "ma_data": ("数据清单梳理", "字段映射", "抓取与申请路径记录"),
-    "ma_cleaning": ("数据清洗", "合并规则设计", "变量构造记录"),
-    "ma_regression": ("回归执行", "表图规划", "稳健性方案整理"),
-    "ma_replication": ("复核检查", "日志记录", "交付验收"),
 }
 REPORT_STYLE_DEFAULTS = {
-    "phd": ("先给判断，再给理由。", "把风险和不确定点单独列清楚。", "给 PI 一个明确的下一步建议。"),
-    "ma": ("先说明完成了什么，再说明还缺什么。", "所有输入材料和输出结果都要能追溯。", "对容易出错的步骤单独提醒。"),
     "econ-os": ("按照规格执行。", "记录所有关键决策点和数据质量检查。", "发现问题立即标记，不掩盖。"),
 }
 
@@ -172,6 +159,15 @@ def _truncate(text: str, limit: int = 240) -> str:
     return normalized[: limit - 1].rstrip() + "…"
 
 
+def _brief_preview(text: str) -> str:
+    """Return the first non-heading line as brief preview, stripping markdown."""
+    for line in text.splitlines():
+        cleaned = line.strip()
+        if cleaned and not cleaned.startswith("#"):
+            return _strip_markdown(cleaned)
+    return _truncate(text, 260)
+
+
 def _extract_sections(markdown_text: str, limit: int = 3) -> list[dict[str, str]]:
     text = markdown_text.replace("\r\n", "\n").strip()
     if not text:
@@ -210,7 +206,8 @@ def _load_ui_state(project_dir: Path) -> dict[str, Any]:
     state = _read_json(project_dir / UI_STATE_FILE, default={})
     active_roles = [role_id for role_id in state.get("active_roles", []) if role_id in role_specs]
     if not active_roles:
-        active_roles = list(role_specs.keys())
+        econ_os_roles = [role_id for role_id, spec in role_specs.items() if spec.layer == "econ-os"]
+        active_roles = econ_os_roles or list(role_specs.keys())
     decisions = state.get("pi_decisions", [])
     if not isinstance(decisions, list):
         decisions = []
@@ -228,12 +225,28 @@ def _load_ui_state(project_dir: Path) -> dict[str, Any]:
     raw_assignments = state.get("process_assignments", {})
     if not isinstance(raw_assignments, dict):
         raw_assignments = {}
+
+    def _recommend_roles(process_id: str, step_id: str) -> list[str]:
+        if process_id != "econ-os-2.0":
+            return []
+        econ_os_roles = tuple(PIPELINES["econ-os-2.0"])
+        ordered_steps = [str(step.get("id", "")).strip() for step in process_template.get("steps", [])]
+        try:
+            step_index = ordered_steps.index(step_id)
+        except ValueError:
+            return []
+        start = step_index * 2
+        return [role_id for role_id in econ_os_roles[start : start + 2] if role_id in role_specs]
+
     process_assignments: dict[str, list[str]] = {}
     for step_id in step_ids:
         assigned_roles = raw_assignments.get(step_id, [])
         if not isinstance(assigned_roles, list):
             assigned_roles = []
-        process_assignments[step_id] = [role_id for role_id in assigned_roles if role_id in role_specs]
+        clean_roles = [role_id for role_id in assigned_roles if role_id in role_specs]
+        if not clean_roles:
+            clean_roles = _recommend_roles(process_id, step_id)
+        process_assignments[step_id] = clean_roles
     return {
         "active_roles": active_roles,
         "stage": stage,
@@ -263,8 +276,10 @@ def _project_metrics(project_dir: Path) -> dict[str, int | str]:
 
 
 def _load_project_cards(project_dir: Path, active_roles: list[str]) -> dict[str, list[dict[str, Any]]]:
-    grouped: dict[str, list[dict[str, Any]]] = {"phd": [], "ma": [], "econ-os": []}
+    grouped: dict[str, list[dict[str, Any]]] = {"econ-os": []}
     for role_id, spec in load_role_specs(project_dir.parent.parent).items():
+        if spec.layer != "econ-os":
+            continue
         deliverable_path = project_dir / spec.deliverable
         deliverable_text = _read_text(deliverable_path)
         latest_run = _latest_run_for_role(project_dir, role_id)
@@ -378,7 +393,7 @@ def _workspace_projects(root: Path) -> list[dict[str, Any]]:
             {
                 "slug": project_dir.name,
                 "title": _project_title(project_dir),
-                "brief_excerpt": _truncate(_read_text(project_dir / "brief.md"), 260),
+                "brief_excerpt": _brief_preview(_read_text(project_dir / "brief.md")),
                 "stage": state["stage"],
                 "process_name": process_template["name"],
                 "process_step": state["process_step"],
@@ -585,7 +600,9 @@ def _render_role_card(profile: dict[str, Any]) -> str:
     responsibility_lines = "\n".join(f"{index}. {item}" for index, item in enumerate(responsibilities, start=1))
     skill_lines = "\n".join(f"- {item}" for item in skills)
     report_lines = "\n".join(f"- {item}" for item in report_style)
-    layer_label = "博士生评审层" if profile.get("layer") == "phd" else "硕士生执行层"
+    layer_label = {
+        "econ-os": "Econ-OS 2.0 研究角色",
+    }.get(profile.get("layer"), str(profile.get("layer") or ""))
     return (
         f"# {profile['name']}\n\n"
         f"{profile['mission'].strip() or '你是这个研究流程中的成员。'}\n\n"
@@ -780,8 +797,10 @@ def _save_agent_profile_ui(
 
 
 def _load_people_groups(root: Path) -> dict[str, list[dict[str, Any]]]:
-    grouped: dict[str, list[dict[str, Any]]] = {"phd": [], "ma": [], "econ-os": []}
+    grouped: dict[str, list[dict[str, Any]]] = {"econ-os": []}
     for role_id, spec in load_role_specs(root).items():
+        if spec.layer != "econ-os":
+            continue
         if spec.layer not in grouped:
             grouped[spec.layer] = []
         grouped[spec.layer].append(_load_agent_profile_ui(root, role_id))
@@ -933,7 +952,7 @@ def create_app(root: Path | None = None) -> Flask:
     def create_people_profile() -> Any:
         name = request.form.get("name", "").strip()
         role_id = request.form.get("role_id", "").strip()
-        layer = request.form.get("layer", "ma").strip().lower() or "ma"
+        layer = request.form.get("layer", "econ-os").strip().lower() or "econ-os"
         display_function = _split_lines(request.form.get("display_function", ""))
         display_ability = _split_lines(request.form.get("display_ability", ""))
         mission = request.form.get("mission", "").strip()
@@ -1085,7 +1104,7 @@ def create_app(root: Path | None = None) -> Flask:
             "project.html",
             slug=slug,
             title=_project_title(project_dir),
-            brief_text=_read_text(project_dir / "brief.md"),
+            brief_text=_brief_preview(_read_text(project_dir / "brief.md")),
             grouped_cards=grouped_cards,
             econ_os_phases=econ_os_phases,
             tickets=_load_tickets(project_dir),
@@ -1196,7 +1215,7 @@ def create_app(root: Path | None = None) -> Flask:
 
     @app.post("/projects/<slug>/run-pipeline")
     def trigger_pipeline(slug: str) -> Any:
-        preset = request.form.get("preset", "committee-review").strip()
+        preset = request.form.get("preset", "econ-os-2.0").strip()
         goal = request.form.get("goal", "").strip()
         execute = request.form.get("execute") == "on"
         try:

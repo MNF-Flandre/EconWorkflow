@@ -7,12 +7,12 @@
   <div class="hero-main">
     <p class="eyebrow">人员配置</p>
     <h1>定义每位成员的分工与协作方式</h1>
-    <p class="hero-copy">这里决定博士生和硕士生在研究流程中的位置。成员卡只保留公开摘要，详细设定统一放到下方编辑区。</p>
+    <p class="hero-copy">这里采用 Econ-OS 2.0 十位角色阵列，直接定义执行者与独立审计员的协作方式。成员卡只保留公开摘要，详细设定统一放到下方编辑区。</p>
   </div>
   <aside class="hero-side">
     <div class="hero-card">
       <p class="hero-label">当前成员</p>
-      <p class="hero-metric">{{ people_groups.phd|length + people_groups.ma|length + people_groups.get('econ-os', [])|length }}</p>
+      <p class="hero-metric">{{ people_groups.get('econ-os', [])|length }}</p>
       <p class="hero-submeta">分工越清晰，后续协作越顺畅。</p>
     </div>
   </aside>
@@ -30,15 +30,13 @@
     <div class="grid two-up">
       <label>
         <span>角色名称</span>
-        <input type="text" name="name" placeholder="例如：博士生四号：资产定价方向组长">
+        <input type="text" name="name" placeholder="例如：B1 文献探索者（可根据团队习惯改名）">
       </label>
       <label>
-        <span>所属层级</span>
-        <select name="layer">
-          <option value="phd">博士生</option>
-          <option value="ma">硕士生</option>
-          <option value="econ-os">Econ-OS 2.0</option>
-        </select>
+        <span>角色层级</span>
+        <div class="pill pill-ok">Econ-OS 2.0</div>
+        <p class="muted">默认采用 Econ-OS 2.0 执行者 + 审计员双轨模式，层级已固定，不支持其他类型。</p>
+        <input type="hidden" name="layer" value="econ-os">
       </label>
     </div>
     <div class="grid two-up">
@@ -91,97 +89,6 @@
     </details>
     <button type="submit">保存这位成员</button>
   </form>
-</section>
-
-<section class="panel people-group-panel" id="phd-group">
-  <div class="panel-head people-group-head">
-    <div>
-      <h2 class="people-group-title">博士生组</h2>
-    </div>
-  </div>
-  <div class="people-grid">
-    {% for profile in people_groups.phd %}
-    <article class="people-card people-card-compact" id="{{ profile.role_id }}">
-      <div class="people-card-top">
-        <h3 class="role-card-name">{{ profile.name }}</h3>
-      </div>
-      <div class="role-brief-list">
-        <section class="role-brief-item">
-          <span class="role-brief-label">主要职能</span>
-          <p>{{ profile.display_function_text }}</p>
-        </section>
-        <section class="role-brief-item">
-          <span class="role-brief-label">主要能力</span>
-          <p>{{ profile.display_ability_text }}</p>
-        </section>
-      </div>
-      <div class="card-actions people-card-actions">
-        <button type="button" class="button-link button-link-secondary button-link-inline" data-role-editor-open="{{ profile.role_id }}">编辑设置</button>
-        {% if profile.is_custom %}
-        <button
-          type="button"
-          class="button-link button-link-danger button-link-inline"
-          data-confirm-open
-          data-confirm-title="删除这个角色？"
-          data-confirm-text="删除后，这个角色会从实验室配置中移除。"
-          data-confirm-submit="delete-role-{{ profile.role_id }}"
-          data-confirm-action-label="确认删除"
-        >
-          删除角色
-        </button>
-        {% endif %}
-      </div>
-      {% if profile.is_custom %}
-      <form id="delete-role-{{ profile.role_id }}" method="post" action="{{ url_for('delete_people_profile', role_id=profile.role_id) }}"></form>
-      {% endif %}
-    </article>
-    {% endfor %}
-  </div>
-</section>
-
-<section class="panel people-group-panel" id="ma-group">
-  <div class="panel-head people-group-head">
-    <div>
-      <h2 class="people-group-title">硕士生组</h2>
-    </div>
-  </div>
-  <div class="people-grid">
-    {% for profile in people_groups.ma %}
-    <article class="people-card people-card-compact" id="{{ profile.role_id }}">
-      <div class="people-card-top">
-        <h3 class="role-card-name">{{ profile.name }}</h3>
-      </div>
-      <div class="role-brief-list">
-        <section class="role-brief-item">
-          <span class="role-brief-label">主要职能</span>
-          <p>{{ profile.display_function_text }}</p>
-        </section>
-        <section class="role-brief-item">
-          <span class="role-brief-label">主要能力</span>
-          <p>{{ profile.display_ability_text }}</p>
-        </section>
-      </div>
-      <div class="card-actions people-card-actions">
-        <button type="button" class="button-link button-link-secondary button-link-inline" data-role-editor-open="{{ profile.role_id }}">编辑设置</button>
-        {% if profile.is_custom %}
-        <button
-          type="button"
-          class="button-link button-link-danger button-link-inline"
-          data-confirm-open
-          data-confirm-title="删除这个角色？"
-          data-confirm-text="删除后，这个角色会从实验室配置中移除。"
-          data-confirm-submit="delete-role-{{ profile.role_id }}"
-          data-confirm-action-label="确认删除"
-        >
-          删除角色
-        </button>
-        {% endif %}
-      </div>
-      {% if profile.is_custom %}
-      <form id="delete-role-{{ profile.role_id }}" method="post" action="{{ url_for('delete_people_profile', role_id=profile.role_id) }}"></form>
-      {% endif %}
-    </article>
-    {% endfor %}
 </section>
 
 <section class="panel people-group-panel" id="econ-os-group">
@@ -243,16 +150,13 @@
     <p class="muted">先从上面的成员卡里选择“编辑设置”，这里就会显示对应的完整表单。</p>
   </div>
 
-  {% for profile in people_groups.phd + people_groups.ma + people_groups.get('econ-os', []) %}
+  {% for profile in people_groups.get('econ-os', []) %}
   <article class="member-editor-card" data-role-editor="{{ profile.role_id }}" hidden>
     <div class="member-editor-head">
       <div>
         <h3 class="role-card-name">{{ profile.name }}</h3>
         <p class="muted">
-          {% if profile.layer == 'phd' %}博士生
-          {% elif profile.layer == 'ma' %}硕士生
-          {% elif profile.layer == 'econ-os' %}Econ-OS 2.0
-          {% else %}{{ profile.layer }}{% endif %}
+          {% if profile.layer == 'econ-os' %}Econ-OS 2.0{% else %}{{ profile.layer }}{% endif %}
         </p>
       </div>
     </div>

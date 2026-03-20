@@ -10,10 +10,10 @@
 
 ### Phase 1: Discovery (文献搜索与理论对齐)
 
-| 新角色ID | 新角色名 | 现有Agent | 目录 | 状态 |
-|---------|--------|---------|------|------|
-| **B1** | Explorer / Literature RA | ma_literature | `agents/ma_literature/` | ✅ 现有agent |
-| **B2** | Challenger / Auditor | (NEW) | `agents/ma_literature/` | 🆕 需创建B2角色 |
+| 新角色ID | 新角色名 | Agent目录 | 状态 |
+|---------|--------|------|------|
+| **B1** | Explorer / Literature RA | `agents/b1_explorer/` | ✅ 内置 |
+| **B2** | Challenger / Auditor | `agents/b2_challenger/` | ✅ 内置 |
 
 **B1 职责:** 
 - 系统文献搜索 → `lit_map.yaml`
@@ -28,10 +28,10 @@
 
 ### Phase 2: Mapping & Lock (规格设计与冻结)
 
-| 新角色ID | 新角色名 | 现有Agent | 目录 | 状态 |
-|---------|--------|---------|------|------|
-| **C1** | Designer | (NEW) | `agents/c1_designer/` | 🆕 需创建 |
-| **C2** | Data Auditor | ma_data | `agents/ma_data/` | ✅ 现有agent升级 |
+| 新角色ID | 新角色名 | Agent目录 | 状态 |
+|---------|--------|------|------|
+| **C1** | Designer | `agents/c1_designer/` | ✅ 内置 |
+| **C2** | Data Auditor | `agents/c2_data_auditor/` | ✅ 内置 |
 
 **C1 职责 (新):**
 - 将假设映射为具体变量
@@ -48,10 +48,10 @@
 
 ### Phase 3: Data Ops (数据清洗与质量审计)
 
-| 新角色ID | 新角色名 | 现有Agent | 目录 | 状态 |
-|---------|--------|---------|------|------|
-| **D1** | Engineer | ma_cleaning | `agents/ma_cleaning/` | ✅ 现有agent |
-| **D2** | QA Auditor | (NEW) | `agents/d2_qa_auditor/` | 🆕 需创建 |
+| 新角色ID | 新角色名 | Agent目录 | 状态 |
+|---------|--------|------|------|
+| **D1** | Engineer | `agents/d1_engineer/` | ✅ 内置 |
+| **D2** | QA Auditor | `agents/d2_qa_auditor/` | ✅ 内置 |
 
 **D1 职责:**
 - 执行清洗脚本: Merge, Lag, Winsorize
@@ -68,10 +68,10 @@
 
 ### Phase 4: Econometrics (回归与压力测试)
 
-| 新角色ID | 新角色名 | 现有Agent | 目录 | 状态 |
-|---------|--------|---------|------|------|
-| **E1** | Regression Runner | ma_regression | `agents/ma_regression/` | ✅ 现有agent |
-| **E2** | Adversarial Auditor | (NEW) | `agents/e2_adversarial_auditor/` | 🆕 需创建 |
+| 新角色ID | 新角色名 | Agent目录 | 状态 |
+|---------|--------|------|------|
+| **E1** | Regression Runner | `agents/e1_runner/` | ✅ 内置 |
+| **E2** | Adversarial Auditor | `agents/e2_adversarial_auditor/` | ✅ 内置 |
 
 **E1 职责:**
 - 执行基准回归 (OLS/FE/RE)
@@ -89,10 +89,10 @@
 
 ### Phase 5: Synthesis (经济解释与期刊模拟)
 
-| 新角色ID | 新角色名 | 现有Agent | 目录 | 状态 |
-|---------|--------|---------|------|------|
-| **F1** | Narrator | phd_story | `agents/phd_story/` | ✅ 现有agent |
-| **F2** | Journal Reviewer | (NEW) | `agents/f2_journal_reviewer/` | 🆕 需创建 |
+| 新角色ID | 新角色名 | Agent目录 | 状态 |
+|---------|--------|------|------|
+| **F1** | Narrator | `agents/f1_narrator/` | ✅ 内置 |
+| **F2** | Journal Reviewer | `agents/f2_journal_reviewer/` | ✅ 内置 |
 
 **F1 职责:**
 - 解释系数的经济含义
@@ -151,11 +151,11 @@
 
 | 角色 | 类型 | 建议人选 | 优先级 |
 |------|------|--------|--------|
-| **B2 Challenger** | RA审计员 | Senior RA | 🔴 高 |
-| **C1 Designer** | 规格设计师 | PhD或Senior RA | 🔴 高 |
-| **D2 QA Auditor** | 数据质检 | Senior RA或Postdoc | 🟡 中 |
-| **E2 Adversarial** | 计量审计员 | PhD领导 | 🔴 高 |
-| **F2 Journal Reviewer** | 期刊模拟 | 发表经验丰富的 | 🟡 中 |
+| **B2 Challenger** | 文献红队 | 具备系统文献审查经验的研究者 | 🔴 高 |
+| **C1 Designer** | 规格设计师 | 有设计/识别经验的研究者 | 🔴 高 |
+| **D2 QA Auditor** | 数据质检 | 有数据审计背景的研究者 | 🟡 中 |
+| **E2 Adversarial** | 计量审计员 | 熟练稳健性压力测试的研究者 | 🔴 高 |
+| **F2 Journal Reviewer** | 期刊模拟 | 发表经验丰富的评审人 | 🟡 中 |
 
 ---
 

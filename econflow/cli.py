@@ -41,11 +41,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     pipeline_parser = subparsers.add_parser("pipeline", help="Run a preset pipeline")
     pipeline_parser.add_argument("--project", required=True, help="Project slug")
-    pipeline_parser.add_argument("--preset", default="faculty-lab", choices=tuple(PIPELINES.keys()))
+    pipeline_parser.add_argument("--preset", default="econ-os-2.0", choices=tuple(PIPELINES.keys()))
     pipeline_parser.add_argument("--goal", default="", help="Extra PI instruction")
     pipeline_parser.add_argument("--execute", action="store_true", help="Call the configured model")
 
-    delegate_parser = subparsers.add_parser("delegate", help="Create a task ticket for a PhD or master's RA")
+    delegate_parser = subparsers.add_parser("delegate", help="Create a task ticket for a research role")
     delegate_parser.add_argument("--project", required=True, help="Project slug")
     delegate_parser.add_argument("--role", required=True, help="Role id")
     delegate_parser.add_argument("--title", required=True, help="Ticket title")

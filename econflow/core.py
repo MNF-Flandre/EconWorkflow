@@ -21,13 +21,14 @@ DEFAULT_CONFIG = textwrap.dedent(
     shared_notes_dir = "shared-notes"
 
     [llm]
+    # 默认不调模型。若要调用模型，请将 mode 设置为 "openai-compatible"，并配置对应的 API 密钥。
     mode = "prompt-only"
-    base_url = "http://localhost:1234/v1"
-    model = "your-local-model"
+    base_url = "https://api.openai.com/v1"
+    model = "gpt-4"
     api_key_env = "OPENAI_API_KEY"
     temperature = 0.2
     max_tokens = 4000
-    """
+"""
 )
 
 
@@ -135,115 +136,6 @@ DEFAULT_ROLE_SPECS: dict[str, RoleSpec] = {
         default_task="模拟顶级期刊审稿人进行严格评审，重点检查内生性处理、过度解释风险和研究设计缺陷，出具学术质量评估意见",
         context_files=("phase_5/final_report.md",),
     ),
-    "phd_feasibility": RoleSpec(
-        name="博士生一号：选题可行性组长",
-        layer="phd",
-        deliverable="outputs/phd_feasibility_memo.md",
-        default_task=(
-            "以经济学 tenure-track 青年教师的视角评估这个 idea 是否值得立项。"
-            "判断研究问题是否足够尖锐、贡献是否清晰、文献位置是否成立、"
-            "最可能的投稿出口在哪里，以及主要风险是什么。"
-        ),
-        context_files=("brief.md", "context/research_question.md", "context/constraints.md"),
-    ),
-    "phd_data": RoleSpec(
-        name="博士生二号：数据与识别组长",
-        layer="phd",
-        deliverable="outputs/phd_data_feasibility.md",
-        default_task=(
-            "判断这个课题的数据和识别是否可做。列出所需数据、可得性、变量口径、"
-            "样本边界、潜在内生性和最小可行的识别路径。"
-        ),
-        context_files=(
-            "brief.md",
-            "context/research_question.md",
-            "outputs/phd_feasibility_memo.md",
-        ),
-    ),
-    "phd_story": RoleSpec(
-        name="博士生三号：故事线与投稿策略组长",
-        layer="phd",
-        deliverable="outputs/phd_storyline_memo.md",
-        default_task=(
-            "在已有可行性和数据判断基础上，搭建论文故事线。明确主结果、机制、"
-            "审稿人最可能质疑的点、应对顺序，以及最适合分派给硕士生的执行包。"
-        ),
-        context_files=(
-            "brief.md",
-            "outputs/phd_feasibility_memo.md",
-            "outputs/phd_data_feasibility.md",
-        ),
-    ),
-    "ma_literature": RoleSpec(
-        name="硕士生一号：文献 RA",
-        layer="ma",
-        deliverable="outputs/ma_literature_matrix.md",
-        default_task=(
-            "按照组长要求收集并整理文献。输出文献矩阵，记录研究问题、数据、识别、"
-            "主要结论、局限和与本课题的关系。"
-        ),
-        context_files=(
-            "brief.md",
-            "outputs/phd_feasibility_memo.md",
-            "outputs/phd_storyline_memo.md",
-        ),
-    ),
-    "ma_data": RoleSpec(
-        name="硕士生二号：数据抓取 RA",
-        layer="ma",
-        deliverable="outputs/ma_data_inventory.md",
-        default_task=(
-            "整理组长要求的数据源。输出数据清单、字段说明、获取状态、访问限制和"
-            "下载/申请路径。"
-        ),
-        context_files=(
-            "brief.md",
-            "outputs/phd_data_feasibility.md",
-            "outputs/phd_storyline_memo.md",
-        ),
-    ),
-    "ma_cleaning": RoleSpec(
-        name="硕士生三号：清洗与合并 RA",
-        layer="ma",
-        deliverable="outputs/ma_cleaning_log.md",
-        default_task=(
-            "把原始数据处理成可分析样本。输出清洗步骤、变量定义、样本筛选和合并规则，"
-            "并明确哪些地方最容易出错。"
-        ),
-        context_files=(
-            "brief.md",
-            "outputs/phd_data_feasibility.md",
-            "outputs/ma_data_inventory.md",
-        ),
-    ),
-    "ma_regression": RoleSpec(
-        name="硕士生四号：回归执行 RA",
-        layer="ma",
-        deliverable="outputs/ma_regression_runbook.md",
-        default_task=(
-            "把组长设计翻译成回归执行清单。列出基准回归、稳健性、异质性、机制和"
-            "表图清单，便于直接去跑。"
-        ),
-        context_files=(
-            "brief.md",
-            "outputs/phd_data_feasibility.md",
-            "outputs/phd_storyline_memo.md",
-            "outputs/ma_cleaning_log.md",
-        ),
-    ),
-    "ma_replication": RoleSpec(
-        name="硕士生五号：复核与表图 RA",
-        layer="ma",
-        deliverable="outputs/ma_replication_checklist.md",
-        default_task=(
-            "从复核角度整理交付标准。列出复现、表图编号、附录、日志记录和交付检查单。"
-        ),
-        context_files=(
-            "brief.md",
-            "outputs/phd_storyline_memo.md",
-            "outputs/ma_regression_runbook.md",
-        ),
-    ),
 }
 
 # Backward-compatible alias for callers that still import ROLE_SPECS directly.
@@ -252,7 +144,7 @@ ROLE_SPECS = DEFAULT_ROLE_SPECS
 PIPELINES: dict[str, tuple[str, ...]] = {
     "econ-os-2.0": (
         "b1_explorer",
-        "b2_challenger", 
+        "b2_challenger",
         "c1_designer",
         "c2_data_auditor",
         "d1_engineer",
@@ -261,18 +153,6 @@ PIPELINES: dict[str, tuple[str, ...]] = {
         "e2_adversarial_auditor",
         "f1_narrator",
         "f2_journal_reviewer",
-    ),
-    "committee-review": ("phd_feasibility", "phd_data", "phd_story"),
-    "ra-sprint": ("ma_literature", "ma_data", "ma_cleaning", "ma_regression", "ma_replication"),
-    "faculty-lab": (
-        "phd_feasibility",
-        "phd_data",
-        "phd_story",
-        "ma_literature",
-        "ma_data",
-        "ma_cleaning",
-        "ma_regression",
-        "ma_replication",
     ),
 }
 
@@ -310,7 +190,7 @@ def _serialize_role_spec(spec: RoleSpec) -> dict[str, object]:
 def _deserialize_role_spec(payload: dict[str, object]) -> RoleSpec:
     return RoleSpec(
         name=str(payload.get("name", "")).strip(),
-        layer=str(payload.get("layer", "ma")).strip() or "ma",
+        layer=str(payload.get("layer", "econ-os")).strip() or "econ-os",
         deliverable=str(payload.get("deliverable", "")).strip(),
         default_task=str(payload.get("default_task", "")).strip(),
         context_files=tuple(str(item).strip() for item in payload.get("context_files", []) if str(item).strip()),
@@ -333,7 +213,7 @@ def load_role_specs(root: Path | None = None) -> dict[str, RoleSpec]:
         if not isinstance(raw_spec, dict):
             continue
         spec = _deserialize_role_spec(raw_spec)
-        if not spec.name or spec.layer not in {"phd", "ma", "econ-os"} or not spec.deliverable or not spec.default_task:
+        if not spec.name or spec.layer not in {"econ-os"} or not spec.deliverable or not spec.default_task:
             continue
         merged[str(role_id).strip()] = spec
     return merged
@@ -401,8 +281,8 @@ def load_config(root: Path) -> WorkspaceConfig:
     llm = data.get("llm") or {}
     llm_config = LLMConfig(
         mode=str(llm.get("mode", "prompt-only")),
-        base_url=str(llm.get("base_url", "http://localhost:1234/v1")),
-        model=str(llm.get("model", "your-local-model")),
+        base_url=str(llm.get("base_url", "https://api.openai.com/v1")),
+        model=str(llm.get("model", "gpt-4")),
         api_key_env=str(llm.get("api_key_env", "OPENAI_API_KEY")),
         temperature=float(llm.get("temperature", 0.2)),
         max_tokens=int(llm.get("max_tokens", 4000)),
@@ -436,13 +316,7 @@ def create_project(root: Path, title: str, slug: str | None = None, question: st
             f"""\
             # {title}
 
-            ## PI Idea
-
-            {objective.strip() or '待补充'}
-
-            ## Research Question
-
-            {question.strip() or '待补充'}
+            {objective.strip() or question.strip() or '待补充项目简介'}
             """
         ),
         "context/research_question.md": f"# Research Question\n\n{question.strip() or '待补充'}\n",
@@ -453,7 +327,7 @@ def create_project(root: Path, title: str, slug: str | None = None, question: st
         "analysis/code/README.md": "# Code\n\nR / Python / Stata 脚本放这里。\n",
         "analysis/tables/README.md": "# Tables\n\n表格输出放这里。\n",
         "analysis/figures/README.md": "# Figures\n\n图形输出放这里。\n",
-        "tickets/open/README.md": "# Open Tickets\n\nPI 发给博士生或硕士生的任务单放这里。\n",
+        "tickets/open/README.md": "# Open Tickets\n\nPI 发给研究角色的任务单放这里。\n",
         "tickets/done/README.md": "# Done Tickets\n\n完成的任务单移到这里。\n",
     }
     for role_id, spec in load_role_specs(root).items():
@@ -484,8 +358,8 @@ def create_custom_role(
     if normalized_role_id in role_specs:
         raise RuntimeError(f"角色已存在: {normalized_role_id}")
     normalized_layer = layer.strip().lower()
-    if normalized_layer not in {"phd", "ma"}:
-        raise RuntimeError("角色层级必须是 phd 或 ma。")
+    if normalized_layer not in {"econ-os"}:
+        raise RuntimeError("角色层级必须是 econ-os。")
     deliverable_name = f"{normalized_role_id}.md"
     spec = RoleSpec(
         name=name.strip() or normalized_role_id,
