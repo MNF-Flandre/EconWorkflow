@@ -20,13 +20,14 @@ DEFAULT_CONFIG = textwrap.dedent(
     agents_dir = "agents"
     shared_notes_dir = "shared-notes"
 
-[llm]
-mode = "prompt-only"
-base_url = "https://api.openai.com/v1"
-model = "gpt-4"
-api_key_env = "OPENAI_API_KEY"
-temperature = 0.2
-max_tokens = 4000
+    [llm]
+    # 默认不调模型；如需执行推理，将 mode 改为 "openai-compatible"
+    mode = "prompt-only"
+    base_url = "https://api.openai.com/v1"
+    model = "gpt-4"
+    api_key_env = "OPENAI_API_KEY"
+    temperature = 0.2
+    max_tokens = 4000
 """
 )
 
