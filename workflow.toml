@@ -29,10 +29,11 @@ scorecard_validation = "mandatory"
 decision_log_file = ".econ-os/decision_log.jsonl"
 
 [llm]
-mode = "openai-compatible"
+# Public repo 默认体验：prompt-only（无需 API key）。
+# 如需真实模型调用，请改为 mode = "openai-compatible" 并配置 api_key_env 对应环境变量，再在命令中使用 --execute。
+mode = "prompt-only"
 base_url = "https://api.openai.com/v1"
 model = "gpt-4"
 api_key_env = "OPENAI_API_KEY"
 temperature = 0.2
 max_tokens = 4000
-

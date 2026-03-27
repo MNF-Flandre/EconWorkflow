@@ -5,8 +5,10 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "econ-research-workflow"
 version = "0.1.0"
-description = "A local, on-demand economics research workflow inspired by multi-agent collaboration."
+description = "Local-first Econ-OS 2.0 workflow shell for schema-driven economics research orchestration."
+readme = "README.md"
 requires-python = ">=3.12"
+keywords = ["economics", "workflow", "local-first", "multi-agent", "schema-driven", "research"]
 dependencies = ["Flask>=3.0"]
 
 [project.scripts]

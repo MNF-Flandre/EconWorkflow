@@ -19,63 +19,83 @@
 
 ## 目录
 
-- `agents/`: 每个角色的 `role.md` 和 `memory.md`
-- `projects/`: 每个课题的资料、输出、任务单和运行记录
-- `shared-notes/`: 跨课题约定
-- `workflow.toml`: 本地模型配置
-- `econflow/`: Python CLI
+为什么这些目录存在：
+- `shared-notes/.econ-os/` 定义“跨项目不变”的协议与流程约束。
+- `projects/` 承载“项目实例化后”的阶段产物与任务票据。
+- `econflow/` 把协议落成可执行 CLI / Web UI，提供最小运行壳层。
 
-设计来源说明见 `shared-notes/design-sources.md`。
+## Quick Start / 快速开始
 
-## 我参考了哪些现成模式
+### 0) 安装
 
-- 项目目录和可复现交付：参考了 AEA Data Editor 对 replication package 的要求，以及 World Bank DIME 的 reproducibility protocol
-- 任务单和责任链：参考了 Gentzkow & Shapiro 的 project management guide
-- RA 常见职责：参考了 Econ RA Guide 和 Northwestern 的 predoc/RA 经验分享
+```bash
+cd /home/runner/work/EconWorkflow/EconWorkflow
+python -m pip install -e .
+```
 
-## 快速开始
+### 1) 查看工作区状态（默认 prompt-only，无需 API）
 
-```powershell
-cd D:\econ-research-workflow
+```bash
 python -m econflow status
 ```
 
-新建课题：
+### 2) 新建一个项目
 
-```powershell
-python -m econflow new-project "中国最低工资与青年就业" --slug min-wage-youth-employment --question "最低工资提高是否影响青年就业？" --objective "先判断这个题值不值得做"
+```bash
+python -m econflow new-project "中国最低工资与青年就业" \
+  --slug min-wage-youth-employment \
+  --question "最低工资提高是否影响青年就业？" \
+  --objective "先判断这个题值不值得做"
 ```
 
-触发 Econ-OS 2.0 全流程：
+### 3) 运行预设 pipeline（只生成任务包，不调用模型）
 
-```powershell
+```bash
 python -m econflow pipeline --project min-wage-youth-employment --preset econ-os-2.0
 ```
 
-如果只想给某个角色单独任务单：
+### 4) 可选：调用模型执行
 
-```powershell
-python -m econflow delegate --project min-wage-youth-employment --role b1_explorer --title "补文献矩阵" --description "围绕最低工资与青年就业补 2018 年后的核心文献" --acceptance "按研究问题、数据、识别、结论、局限整理成表"
-```
+仅当你需要真实模型响应时：
+1. 将 `workflow.toml` 中 `[llm].mode` 从 `prompt-only` 改为 `openai-compatible`
+2. 配置 `OPENAI_API_KEY`
+3. 在命令追加 `--execute`
 
-## 预设流程
+## Typical Workflow / 典型使用路径
 
-- `econ-os-2.0`: 10 角色覆盖创意、设计、数据、实证、解释的全流程
+1. 初始化环境并确认 `status` 可用。  
+2. 使用 `new-project` 创建课题目录。  
+3. 用 `status --project <slug>` 查看阶段和交付进度。  
+4. 用 `pipeline` 跑整套流程，或用 `delegate` 给单角色发任务。  
+5. 在 `projects/<slug>/phase_*` 查看各阶段输出与 scorecard。  
+6. 通过 `decision_log.jsonl` 追踪关键决策。  
+7. 若触发回滚条件，回到对应阶段修订后再推进。  
 
-## 是否调用模型
+## What this repo currently includes / does not include
 
-默认是 `prompt-only`，只生成任务包和任务单，不调模型。
+### Includes
+- Econ-OS 2.0 角色体系与默认角色卡
+- 5 阶段流程模板与 pipeline 入口
+- Schema 协议文件（hypotheses / design lock / scorecards / decision log / rollback）
+- 本地 CLI 与本地 Web UI 壳层
+- 项目模板与票据化任务委派机制
 
-如果你有本地或远程的 OpenAI-compatible 接口，把 `workflow.toml` 改成：
+### Does not include
+- 任何个人私有项目、私有数据或私有 API 凭据
+- 托管式在线服务（SaaS）
+- 完整封装的“全自动计量执行引擎”
+- 生产级多租户权限与云端编排基础设施
 
-```toml
-[llm]
-mode = "openai-compatible"
-base_url = "https://api.openai.com/v1"
-model = "gpt-4"
-api_key_env = "OPENAI_API_KEY"
-temperature = 0.2
-max_tokens = 4000
-```
+## Current Status
 
-记得在环境变量里写入 `OPENAI_API_KEY`，然后加 `--execute` 即可。
+- **Maturity:** alpha  
+- **Operating model:** local-first, on-demand  
+- **Workflow shell:** available  
+- **Execution depth:** evolving
+
+## Related Docs
+
+- `shared-notes/.econ-os/README.md`：Econ-OS 2.0 协议层总览
+- `shared-notes/.econ-os/AGENT_ROLES.md`：角色职责与输入输出契约
+- `shared-notes/.econ-os/INTEGRATION_GUIDE.md`：集成与迁移指引
+- `projects/.econ-os-template/README.md`：项目模板使用说明
