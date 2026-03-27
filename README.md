@@ -1,32 +1,23 @@
-# EconWorkflow (Econ-OS 2.0, alpha)
+# 经济学实验室角色扮演工作流
 
-EconWorkflow 是一个**本地运行、按需触发**的经济学研究工作流系统，面向希望把研究过程结构化、可追踪化的 PI / RA 团队与独立研究者。  
-它的核心是 **Schema 驱动 + 阶段化状态管理 + 多角色协作**，用于统一研究流程与交付物。  
-它**不是**托管式 AutoML 平台、不是云端代理编排服务，也不是“一键产出论文”的黑盒工具。
+这是一个本地、按需触发的研究实验室工作流。你可以与 Econ-OS 2.0 的 10 个职责覆盖文献探索到期刊审稿的agents一同推进课题。
 
-> Public 版本聚焦工作流框架与协议层（角色、流程、schema、状态），不包含任何个人私有研究项目实例或私有数据。
+## 组织图
 
-## Key Features / 核心特性
+- 你：PI，负责提 idea、定方向、发任务单
+- Econ-OS 2.0 研究角色
+- `b1_explorer`: 文献探索者
+- `b2_challenger`: 文献挑战者
+- `c1_designer`: 规格设计师
+- `c2_data_auditor`: 数据可得性审计员
+- `d1_engineer`: 数据工程师
+- `d2_qa_auditor`: 数据质控审计员
+- `e1_runner`: 回归执行者
+- `e2_adversarial_auditor`: 稳健性审计员
+- `f1_narrator`: 经济解释者
+- `f2_journal_reviewer`: 期刊审稿人
 
-- **Supervisor-led orchestration**：以 PI / Supervisor 视角组织任务，角色分工明确，支持 `pipeline` 与 `delegate`。
-- **Standardized phase structure**：固定 5 阶段（Discovery → Design Lock → Data Ops → Econometrics → Synthesis）。
-- **Schema-based handoff**：关键阶段输出采用 YAML / JSON / JSONL 协议，便于审阅、复核与自动化检查。
-- **Decision logs and rollback**：通过 `decision_log.jsonl` 记录关键决策，按规则触发回滚。
-- **Prompt-only default, local-first**：默认 `prompt-only`，首次体验无需 API Key；仅在 `--execute` 时调用模型。
-- **CLI + Web UI**：CLI 负责可脚本化执行，Web UI 负责状态可视化与本地操作入口。
-
-## Project Structure / 仓库结构
-
-```text
-EconWorkflow/
-├─ econflow/                     # CLI 与本地 Web UI 实现
-├─ agents/                       # 角色定义（role/memory/profile/card）
-├─ projects/                     # 课题目录（含 .econ-os-template 模板）
-├─ shared-notes/                 # 跨课题共享约定
-│  └─ .econ-os/                  # Econ-OS 2.0 协议层文档、schemas、流程模板
-├─ workflow.toml                 # 工作流与默认 LLM 行为配置
-└─ pyproject.toml                # Python 包元信息与入口脚本
-```
+## 目录
 
 为什么这些目录存在：
 - `shared-notes/.econ-os/` 定义“跨项目不变”的协议与流程约束。
